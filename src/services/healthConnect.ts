@@ -2,7 +2,7 @@ import { Platform } from 'react-native';
 
 export type HealthMetrics = { steps: number; calories: number; exerciseMinutes: number };
 
-const RECORD_TYPES = ['Steps', 'TotalCaloriesBurned', 'ExerciseSession'] as const;
+const RECORD_TYPES = ['Steps', 'ActiveCaloriesBurned', 'ExerciseSession'] as const;
 
 // react-native-health-connect requires a native module that Expo Go doesn't ship.
 // Loading it lazily (only when actually called, on Android) keeps Expo Go usable
@@ -79,12 +79,12 @@ export async function fetchTodayHealthMetrics(): Promise<HealthMetrics | null> {
   try {
     const [stepsRes, caloriesRes, exerciseRes] = await Promise.all([
       hc.aggregateRecord({ recordType: 'Steps', timeRangeFilter }),
-      hc.aggregateRecord({ recordType: 'TotalCaloriesBurned', timeRangeFilter }),
+      hc.aggregateRecord({ recordType: 'ActiveCaloriesBurned', timeRangeFilter }),
       hc.aggregateRecord({ recordType: 'ExerciseSession', timeRangeFilter }),
     ]);
     return {
       steps: stepsRes.COUNT_TOTAL ?? 0,
-      calories: Math.round(caloriesRes.ENERGY_TOTAL?.inKilocalories ?? 0),
+      calories: Math.round(caloriesRes.ACTIVE_CALORIES_TOTAL?.inKilocalories ?? 0),
       exerciseMinutes: Math.round((exerciseRes.EXERCISE_DURATION_TOTAL?.inSeconds ?? 0) / 60),
     };
   } catch {
