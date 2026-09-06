@@ -65,3 +65,17 @@ export function ShieldIcon({ size = 22, color = LQ.inkFaint }: Props) {
     </Svg>
   );
 }
+
+export function HeartIcon({ size = 22, color = LQ.inkFaint }: Props) {
+  return (
+    <Svg width={size} height={size} viewBox="0 0 24 24" fill="none">
+      <Path
+        d="M12 20.5s-7.5-4.6-10-9.3C.4 8 2 4.5 5.4 4c2.1-.3 4 .8 6.6 3.4C14.6 4.8 16.5 3.7 18.6 4c3.4.5 5 4 3.4 7.2-2.5 4.7-10 9.3-10 9.3z"
+        stroke={color}
+        strokeWidth={1.8}
+        strokeLinecap="round"
+        strokeLinejoin="round"
+      />
+    </Svg>
+  );
+}

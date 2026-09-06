@@ -1,25 +1,15 @@
-import React, { useEffect, useRef, useState } from 'react';
-import { AppState, Alert, Platform, Pressable, ScrollView, StyleSheet, Text, TextInput, View } from 'react-native';
+import React, { useEffect, useState } from 'react';
+import { Pressable, ScrollView, StyleSheet, Text, TextInput, View } from 'react-native';
 import Svg, { Path } from 'react-native-svg';
 
 import { ExercisePickerModal } from '@/components/ExercisePickerModal';
 import { BigFigure, Card, Eyebrow, PillButton, SectionTitle, SubText, XpBadge } from '@/components/ui';
 import { WeightChart } from '@/components/WeightChart';
 import { LQ } from '@/constants/life-quest-theme';
-import {
-  fetchTodayHealthMetrics,
-  hasHealthPermissions,
-  HealthMetrics,
-  isHealthConnectSupported,
-  openHealthConnectSettings,
-  requestHealthPermissions,
-} from '@/services/healthConnect';
 import { fmtDuration } from '@/store/dates';
 import { XP_EXERCISE, useLifeQuest } from '@/store/LifeQuestStore';
 import { LibraryExercise } from '@/store/exercise-library';
 import { WEEKDAY_FULL, WEEKDAYS } from '@/store/types';
-
-type HealthStatus = 'checking' | 'unsupported' | 'need-permission' | 'ready';
 
 function CheckIcon({ checked }: { checked: boolean }) {
   if (!checked) return null;
@@ -51,64 +41,6 @@ export default function AcademiaScreen() {
   const [pickerOpen, setPickerOpen] = useState(false);
   const [weightInput, setWeightInput] = useState('');
   const [, forceTick] = useState(0);
-
-  const [healthStatus, setHealthStatus] = useState<HealthStatus>('checking');
-  const [healthMetrics, setHealthMetrics] = useState<HealthMetrics | null>(null);
-  const [healthSyncing, setHealthSyncing] = useState(false);
-  const healthStatusRef = useRef(healthStatus);
-  healthStatusRef.current = healthStatus;
-
-  const refreshHealthStatus = async () => {
-    if (Platform.OS !== 'android' || !(await isHealthConnectSupported())) {
-      setHealthStatus('unsupported');
-      return;
-    }
-    if (await hasHealthPermissions()) {
-      setHealthStatus('ready');
-      setHealthMetrics(await fetchTodayHealthMetrics());
-    } else {
-      setHealthStatus('need-permission');
-    }
-  };
-
-  useEffect(() => {
-    refreshHealthStatus();
-    // Se o usuário sair pra conceder a permissão manualmente no app do Health
-    // Connect, detecta isso quando ele voltar pro Life Quest.
-    const sub = AppState.addEventListener('change', (state) => {
-      if (state === 'active' && healthStatusRef.current === 'need-permission') {
-        refreshHealthStatus();
-      }
-    });
-    return () => sub.remove();
-  }, []);
-
-  const connectHealth = async () => {
-    setHealthSyncing(true);
-    const result = await requestHealthPermissions();
-    if (result.granted) {
-      setHealthStatus('ready');
-      setHealthMetrics(await fetchTodayHealthMetrics());
-    } else if (result.reason === 'error') {
-      Alert.alert('Erro ao conectar', result.error || 'Falha desconhecida ao falar com o Health Connect.');
-    } else {
-      Alert.alert(
-        'Permissão não concedida',
-        'O Android pode ter bloqueado o pedido de permissão (isso acontece se você já negou duas vezes). Abra o Health Connect e conceda o acesso manualmente para o Life Quest.',
-        [
-          { text: 'Agora não', style: 'cancel' },
-          { text: 'Abrir Health Connect', onPress: openHealthConnectSettings },
-        ]
-      );
-    }
-    setHealthSyncing(false);
-  };
-
-  const syncHealth = async () => {
-    setHealthSyncing(true);
-    setHealthMetrics(await fetchTodayHealthMetrics());
-    setHealthSyncing(false);
-  };
 
   const plan = state.workoutPlan[activeWeekday];
   const dayKey = workoutDayKey(activeWeekday);
@@ -154,55 +86,6 @@ export default function AcademiaScreen() {
           {(running || paused) && <PillButton label="Finalizar treino" onPress={finishWorkoutTimer} style={styles.timerBtn} />}
         </View>
       </Card>
-
-      {healthStatus !== 'unsupported' && (
-        <Card>
-          <Eyebrow>Google Saúde</Eyebrow>
-          {healthStatus === 'checking' && <SubText>Verificando Health Connect…</SubText>}
-          {healthStatus === 'need-permission' && (
-            <>
-              <SubText style={{ marginBottom: 12 }}>
-                Conecte para trazer passos, calorias e tempo de exercício de hoje direto do Health Connect.
-              </SubText>
-              <PillButton
-                label={healthSyncing ? 'Conectando…' : 'Conectar'}
-                variant="ghost"
-                disabled={healthSyncing}
-                onPress={connectHealth}
-              />
-              <Pressable onPress={openHealthConnectSettings} hitSlop={8} style={{ marginTop: 12, alignSelf: 'center' }}>
-                <Text style={styles.healthLink}>Já neguei antes? Abrir Health Connect</Text>
-              </Pressable>
-            </>
-          )}
-          {healthStatus === 'ready' && (
-            <>
-              <View style={styles.healthRow}>
-                <View style={styles.healthMetric}>
-                  <Text style={styles.healthValue}>{healthMetrics?.steps ?? '—'}</Text>
-                  <SubText>passos</SubText>
-                </View>
-                <View style={styles.healthMetric}>
-                  <Text style={styles.healthValue}>{healthMetrics?.calories ?? '—'}</Text>
-                  <SubText>kcal</SubText>
-                </View>
-                <View style={styles.healthMetric}>
-                  <Text style={styles.healthValue}>{healthMetrics?.exerciseMinutes ?? '—'}</Text>
-                  <SubText>min exercício</SubText>
-                </View>
-              </View>
-              <View style={styles.healthLinksRow}>
-                <Pressable onPress={syncHealth} hitSlop={8}>
-                  <Text style={styles.healthLink}>{healthSyncing ? 'Sincronizando…' : 'Sincronizar'}</Text>
-                </Pressable>
-                <Pressable onPress={openHealthConnectSettings} hitSlop={8}>
-                  <Text style={styles.healthLink}>Gerenciar permissões</Text>
-                </Pressable>
-              </View>
-            </>
-          )}
-        </Card>
-      )}
 
       <SectionTitle>Plano semanal</SectionTitle>
       <View style={styles.weekdayRow}>
@@ -333,11 +216,6 @@ const styles = StyleSheet.create({
   timerFigure: { fontSize: 32, textAlign: 'center', marginVertical: 4 },
   timerActions: { flexDirection: 'row', gap: 8, marginTop: 12, justifyContent: 'center' },
   timerBtn: { minWidth: 110 },
-  healthRow: { flexDirection: 'row' },
-  healthMetric: { flex: 1, alignItems: 'center' },
-  healthValue: { color: LQ.ink, fontFamily: LQ.fontMono, fontSize: 20 },
-  healthLinksRow: { flexDirection: 'row', justifyContent: 'center', gap: 20, marginTop: 14 },
-  healthLink: { color: LQ.gold, fontSize: 12, fontFamily: LQ.fontBodySemiBold },
   weekdayRow: { flexDirection: 'row', gap: 8, flexWrap: 'wrap' },
   weekdayPill: {
     paddingVertical: 8,
