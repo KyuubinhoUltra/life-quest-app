@@ -35,8 +35,9 @@ type Ctx = {
   addHabit: (name: string) => void;
   deleteHabit: (id: string) => void;
   addWater: (deltaMl: number) => void;
+  deleteWaterEntry: (date: string) => void;
   saveSleep: (bed: string, wake: string) => void;
-  deleteSleepEntry: () => void;
+  deleteSleepEntry: (date: string) => void;
   workoutDayKey: (weekdayKey: string) => string;
   toggleExercise: (weekdayKey: string, exId: string) => void;
   addExercise: (weekdayKey: string, name: string, target: string, weight: number, cat?: string) => void;
@@ -257,14 +258,23 @@ export function LifeQuestProvider({ children }: { children: React.ReactNode }) {
     [checkDailyBonuses, today]
   );
 
-  const deleteSleepEntry = useCallback(() => {
+  const deleteSleepEntry = useCallback((date: string) => {
     setState((prev) => {
-      if (!prev.sleepLog[today]) return prev;
+      if (!prev.sleepLog[date]) return prev;
       const next = { ...prev.sleepLog };
-      delete next[today];
+      delete next[date];
       return { ...prev, sleepLog: next };
     });
-  }, [today]);
+  }, []);
+
+  const deleteWaterEntry = useCallback((date: string) => {
+    setState((prev) => {
+      if (!(date in prev.waterLog)) return prev;
+      const next = { ...prev.waterLog };
+      delete next[date];
+      return { ...prev, waterLog: next };
+    });
+  }, []);
 
   // dia real (hoje) para o dia da semana selecionado, ou uma chave fixa de "modelo" para outros dias
   const workoutDayKey = useCallback(
@@ -525,6 +535,7 @@ export function LifeQuestProvider({ children }: { children: React.ReactNode }) {
       addHabit,
       deleteHabit,
       addWater,
+      deleteWaterEntry,
       saveSleep,
       deleteSleepEntry,
       workoutDayKey,
@@ -564,6 +575,7 @@ export function LifeQuestProvider({ children }: { children: React.ReactNode }) {
       addHabit,
       deleteHabit,
       addWater,
+      deleteWaterEntry,
       saveSleep,
       deleteSleepEntry,
       workoutDayKey,

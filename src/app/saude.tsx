@@ -4,7 +4,9 @@ import { ScrollView, StyleSheet, Text, View } from 'react-native';
 import { Gauge } from '@/components/Gauge';
 import { HealthConnectCard } from '@/components/HealthConnectCard';
 import { hmFromMinutes, minutesFromHM, SleepDial } from '@/components/SleepDial';
+import { SleepHistoryModal } from '@/components/SleepHistoryModal';
 import { BigFigure, Card, Eyebrow, PillButton, SectionTitle, SubText } from '@/components/ui';
+import { WaterHistoryModal } from '@/components/WaterHistoryModal';
 import { LQ } from '@/constants/life-quest-theme';
 import { SLEEP_TARGET_H, useLifeQuest } from '@/store/LifeQuestStore';
 
@@ -26,11 +28,14 @@ function sleepHoursFromTimes(bed?: string, wake?: string): number | null {
 }
 
 export default function SaudeScreen() {
-  const { state, today, addWater, saveSleep, deleteSleepEntry, latestBodyWeight, waterTargetMl } = useLifeQuest();
+  const { state, today, addWater, deleteWaterEntry, saveSleep, deleteSleepEntry, latestBodyWeight, waterTargetMl } =
+    useLifeQuest();
 
   const todaySleep = state.sleepLog[today];
   const [bedMin, setBedMin] = useState(minutesFromHM(todaySleep?.bed ?? '', DEFAULT_BED_MIN));
   const [wakeMin, setWakeMin] = useState(minutesFromHM(todaySleep?.wake ?? '', DEFAULT_WAKE_MIN));
+  const [sleepHistoryOpen, setSleepHistoryOpen] = useState(false);
+  const [waterHistoryOpen, setWaterHistoryOpen] = useState(false);
 
   const consumed = state.waterLog[today] || 0;
   const target = waterTargetMl();
@@ -69,6 +74,12 @@ export default function SaudeScreen() {
               Peso: {weight.toLocaleString('pt-BR', { minimumFractionDigits: 1 })} kg × {ML_PER_KG}ml · +15 XP ao bater a meta
             </SubText>
           )}
+          <PillButton
+            label="Ver histórico"
+            variant="ghost"
+            onPress={() => setWaterHistoryOpen(true)}
+            style={{ marginTop: 10 }}
+          />
         </Card>
 
         <Card style={styles.healthCard}>
@@ -85,6 +96,12 @@ export default function SaudeScreen() {
                 ? 'Meta de sono batida 🌙'
                 : `${(SLEEP_TARGET_H - hours).toLocaleString('pt-BR', { maximumFractionDigits: 1 })}h a menos que o recomendado`}
           </SubText>
+          <PillButton
+            label="Ver histórico"
+            variant="ghost"
+            onPress={() => setSleepHistoryOpen(true)}
+            style={{ marginTop: 10 }}
+          />
         </Card>
       </View>
 
@@ -103,7 +120,7 @@ export default function SaudeScreen() {
             label="Excluir registro de sono"
             variant="ghost"
             onPress={() => {
-              deleteSleepEntry();
+              deleteSleepEntry(today);
               setBedMin(DEFAULT_BED_MIN);
               setWakeMin(DEFAULT_WAKE_MIN);
             }}
@@ -112,6 +129,19 @@ export default function SaudeScreen() {
         )}
         <SubText style={styles.hint}>Recomendado: {SLEEP_TARGET_H}h por noite · +15 XP ao bater a meta</SubText>
       </Card>
+
+      <SleepHistoryModal
+        visible={sleepHistoryOpen}
+        entries={state.sleepLog}
+        onClose={() => setSleepHistoryOpen(false)}
+        onDelete={deleteSleepEntry}
+      />
+      <WaterHistoryModal
+        visible={waterHistoryOpen}
+        entries={state.waterLog}
+        onClose={() => setWaterHistoryOpen(false)}
+        onDelete={deleteWaterEntry}
+      />
     </ScrollView>
   );
 }
