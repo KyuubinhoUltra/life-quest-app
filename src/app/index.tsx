@@ -1,6 +1,7 @@
 import React from 'react';
 import { ScrollView, StyleSheet, Text, View } from 'react-native';
 
+import { AnimatedFlame } from '@/components/AnimatedFlame';
 import { BigFigure, Card, Eyebrow, ProgressBar, SubText } from '@/components/ui';
 import { LQ } from '@/constants/life-quest-theme';
 import { dateKeyOffset } from '@/store/dates';
@@ -37,7 +38,7 @@ export default function DashboardScreen() {
     <ScrollView style={styles.screen} contentContainerStyle={styles.content}>
       <Card style={styles.ofensivaCard}>
         <View style={styles.ofensivaTopRow}>
-          <Text style={[styles.flame, !lit && styles.flameOff]}>🔥</Text>
+          <AnimatedFlame active={lit} style={[styles.flame, !lit && styles.flameOff]} />
           <View style={{ flex: 1 }}>
             <Text style={styles.ofensivaCount} numberOfLines={1} adjustsFontSizeToFit>
               <Text style={styles.ofensivaCountStrong}>{ofensiva}</Text>{' '}
@@ -55,7 +56,15 @@ export default function DashboardScreen() {
                 d.active && styles.ofensivaDayActive,
                 d.isToday && styles.ofensivaDayToday,
               ]}>
-              <Text style={{ fontSize: d.active ? 20 : 12 }}>{d.active ? '🔥' : '·'}</Text>
+              {d.active ? (
+                d.isToday ? (
+                  <AnimatedFlame active style={{ fontSize: 20 }} />
+                ) : (
+                  <Text style={{ fontSize: 20 }}>🔥</Text>
+                )
+              ) : (
+                <Text style={{ fontSize: 12 }}>·</Text>
+              )}
             </View>
           ))}
         </View>
