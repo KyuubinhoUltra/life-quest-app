@@ -197,7 +197,7 @@ const styles = StyleSheet.create({
   },
   title: {
     color: LQ.ink,
-    fontWeight: '700',
+    fontFamily: LQ.fontDisplay,
     fontSize: 20,
     textAlign: 'center',
     textTransform: 'uppercase',
@@ -206,7 +206,7 @@ const styles = StyleSheet.create({
   sub: { color: LQ.inkSoft, fontSize: 13, textAlign: 'center', marginTop: 4, marginBottom: 4 },
   arcWrap: { width: 240, height: 200, alignSelf: 'center', marginTop: 4 },
   arcIcon: { position: 'absolute', top: '46%', left: '50%', fontSize: 46, transform: [{ translateX: -23 }, { translateY: -23 }] },
-  amount: { color: LQ.ink, fontWeight: '700', fontSize: 30, textAlign: 'center', fontFamily: 'monospace', marginTop: 4 },
+  amount: { color: LQ.ink, fontSize: 30, textAlign: 'center', fontFamily: LQ.fontMono, marginTop: 4 },
   progress: { color: LQ.gold, fontWeight: '600', fontSize: 13, textAlign: 'center', marginTop: 2 },
   actions: { flexDirection: 'row', gap: 10, marginTop: 22 },
   actionBtn: {

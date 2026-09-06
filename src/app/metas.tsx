@@ -127,8 +127,8 @@ const styles = StyleSheet.create({
     borderRadius: LQ.radius,
     padding: 16,
   },
-  goalName: { color: LQ.ink, fontWeight: '700', fontSize: 15, textTransform: 'uppercase' },
-  goalFigures: { color: LQ.inkSoft, fontSize: 12, fontFamily: 'monospace', marginTop: 4 },
+  goalName: { color: LQ.ink, fontFamily: LQ.fontDisplay, fontSize: 15, textTransform: 'uppercase' },
+  goalFigures: { color: LQ.inkSoft, fontSize: 12, fontFamily: LQ.fontMono, marginTop: 4 },
   goalSaved: { color: LQ.ink, fontWeight: '700' },
   goalActionsRow: { flexDirection: 'row', alignItems: 'center', gap: 8, marginTop: 10 },
   smallGhostBtn: {

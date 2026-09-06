@@ -13,4 +13,11 @@ export const LQ = {
   danger: '#EF4444',
   dangerSoft: 'rgba(239,68,68,0.16)',
   radius: 16,
+  fontDisplay: 'Anton_400Regular',
+  fontBody: 'PublicSans_400Regular',
+  fontBodyMedium: 'PublicSans_500Medium',
+  fontBodySemiBold: 'PublicSans_600SemiBold',
+  fontBodyBold: 'PublicSans_700Bold',
+  fontMono: 'IBMPlexMono_600SemiBold',
+  fontMonoRegular: 'IBMPlexMono_400Regular',
 } as const;

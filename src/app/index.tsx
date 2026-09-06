@@ -55,7 +55,7 @@ export default function DashboardScreen() {
                 d.active && styles.ofensivaDayActive,
                 d.isToday && styles.ofensivaDayToday,
               ]}>
-              <Text style={{ fontSize: 12 }}>{d.active ? '🔥' : '·'}</Text>
+              <Text style={{ fontSize: d.active ? 20 : 12 }}>{d.active ? '🔥' : '·'}</Text>
             </View>
           ))}
         </View>
@@ -127,7 +127,7 @@ const styles = StyleSheet.create({
   ofensivaTopRow: { flexDirection: 'row', alignItems: 'center', gap: 14 },
   flame: { fontSize: 34 },
   flameOff: { opacity: 0.35 },
-  ofensivaCount: { color: LQ.ink, fontSize: 15, fontWeight: '700', textTransform: 'uppercase' },
+  ofensivaCount: { color: LQ.ink, fontSize: 15, fontFamily: LQ.fontBodyBold, textTransform: 'uppercase' },
   ofensivaCountStrong: { color: LQ.goldInk },
   ofensivaDays: { flexDirection: 'row', gap: 6 },
   ofensivaDay: {

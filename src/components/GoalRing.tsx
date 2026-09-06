@@ -37,5 +37,5 @@ export function GoalRing({ pct, icon, size = 76 }: { pct: number; icon: string; 
 const styles = StyleSheet.create({
   wrap: { alignItems: 'center', justifyContent: 'center' },
   icon: { position: 'absolute', fontSize: 26, top: '30%' },
-  pct: { position: 'absolute', bottom: -2, fontSize: 9, fontWeight: '700', color: LQ.goldInk, fontFamily: 'monospace' },
+  pct: { position: 'absolute', bottom: -2, fontSize: 9, color: LQ.goldInk, fontFamily: LQ.fontMono },
 });

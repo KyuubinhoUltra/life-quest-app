@@ -1,6 +1,21 @@
+import { Anton_400Regular } from '@expo-google-fonts/anton';
+import {
+  IBMPlexMono_400Regular,
+  IBMPlexMono_500Medium,
+  IBMPlexMono_600SemiBold,
+  IBMPlexMono_700Bold,
+} from '@expo-google-fonts/ibm-plex-mono';
+import {
+  PublicSans_400Regular,
+  PublicSans_500Medium,
+  PublicSans_600SemiBold,
+  PublicSans_700Bold,
+} from '@expo-google-fonts/public-sans';
 import { Tabs } from 'expo-router';
+import { useFonts } from 'expo-font';
 import * as SplashScreen from 'expo-splash-screen';
 import React, { useEffect } from 'react';
+import { Text } from 'react-native';
 import { StatusBar } from 'expo-status-bar';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 
@@ -10,14 +25,30 @@ import { LifeQuestProvider } from '@/store/LifeQuestStore';
 
 SplashScreen.preventAutoHideAsync();
 
+(Text as any).defaultProps = (Text as any).defaultProps || {};
+(Text as any).defaultProps.style = [{ fontFamily: LQ.fontBody }, (Text as any).defaultProps.style];
+
 export default function RootLayout() {
   const insets = useSafeAreaInsets();
+  const [fontsLoaded] = useFonts({
+    Anton_400Regular,
+    PublicSans_400Regular,
+    PublicSans_500Medium,
+    PublicSans_600SemiBold,
+    PublicSans_700Bold,
+    IBMPlexMono_400Regular,
+    IBMPlexMono_500Medium,
+    IBMPlexMono_600SemiBold,
+    IBMPlexMono_700Bold,
+  });
 
   useEffect(() => {
-    SplashScreen.hideAsync();
-  }, []);
+    if (fontsLoaded) SplashScreen.hideAsync();
+  }, [fontsLoaded]);
 
   const tabBarHeight = 56 + insets.bottom;
+
+  if (!fontsLoaded) return null;
 
   return (
     <LifeQuestProvider>
@@ -25,7 +56,7 @@ export default function RootLayout() {
       <Tabs
         screenOptions={{
           headerStyle: { backgroundColor: LQ.paper },
-          headerTitleStyle: { color: LQ.ink, fontWeight: '700', textTransform: 'uppercase', letterSpacing: 0.5 },
+          headerTitleStyle: { color: LQ.ink, fontFamily: LQ.fontDisplay, textTransform: 'uppercase', letterSpacing: 0.5 },
           headerShadowVisible: false,
           tabBarStyle: {
             backgroundColor: LQ.paperRaised,
@@ -36,7 +67,7 @@ export default function RootLayout() {
           },
           tabBarActiveTintColor: LQ.gold,
           tabBarInactiveTintColor: LQ.inkFaint,
-          tabBarLabelStyle: { fontSize: 11, fontWeight: '600' },
+          tabBarLabelStyle: { fontSize: 11, fontFamily: LQ.fontBodySemiBold },
         }}>
         <Tabs.Screen
           name="index"
