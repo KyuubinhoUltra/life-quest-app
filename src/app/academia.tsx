@@ -1,5 +1,5 @@
-import React, { useEffect, useState } from 'react';
-import { Platform, Pressable, ScrollView, StyleSheet, Text, TextInput, View } from 'react-native';
+import React, { useEffect, useRef, useState } from 'react';
+import { AppState, Alert, Platform, Pressable, ScrollView, StyleSheet, Text, TextInput, View } from 'react-native';
 import Svg, { Path } from 'react-native-svg';
 
 import { ExercisePickerModal } from '@/components/ExercisePickerModal';
@@ -55,28 +55,51 @@ export default function AcademiaScreen() {
   const [healthStatus, setHealthStatus] = useState<HealthStatus>('checking');
   const [healthMetrics, setHealthMetrics] = useState<HealthMetrics | null>(null);
   const [healthSyncing, setHealthSyncing] = useState(false);
+  const healthStatusRef = useRef(healthStatus);
+  healthStatusRef.current = healthStatus;
+
+  const refreshHealthStatus = async () => {
+    if (Platform.OS !== 'android' || !(await isHealthConnectSupported())) {
+      setHealthStatus('unsupported');
+      return;
+    }
+    if (await hasHealthPermissions()) {
+      setHealthStatus('ready');
+      setHealthMetrics(await fetchTodayHealthMetrics());
+    } else {
+      setHealthStatus('need-permission');
+    }
+  };
 
   useEffect(() => {
-    (async () => {
-      if (Platform.OS !== 'android' || !(await isHealthConnectSupported())) {
-        setHealthStatus('unsupported');
-        return;
+    refreshHealthStatus();
+    // Se o usuário sair pra conceder a permissão manualmente no app do Health
+    // Connect, detecta isso quando ele voltar pro Life Quest.
+    const sub = AppState.addEventListener('change', (state) => {
+      if (state === 'active' && healthStatusRef.current === 'need-permission') {
+        refreshHealthStatus();
       }
-      if (await hasHealthPermissions()) {
-        setHealthStatus('ready');
-        setHealthMetrics(await fetchTodayHealthMetrics());
-      } else {
-        setHealthStatus('need-permission');
-      }
-    })();
+    });
+    return () => sub.remove();
   }, []);
 
   const connectHealth = async () => {
     setHealthSyncing(true);
-    const granted = await requestHealthPermissions();
-    if (granted) {
+    const result = await requestHealthPermissions();
+    if (result.granted) {
       setHealthStatus('ready');
       setHealthMetrics(await fetchTodayHealthMetrics());
+    } else if (result.reason === 'error') {
+      Alert.alert('Erro ao conectar', result.error || 'Falha desconhecida ao falar com o Health Connect.');
+    } else {
+      Alert.alert(
+        'Permissão não concedida',
+        'O Android pode ter bloqueado o pedido de permissão (isso acontece se você já negou duas vezes). Abra o Health Connect e conceda o acesso manualmente para o Life Quest.',
+        [
+          { text: 'Agora não', style: 'cancel' },
+          { text: 'Abrir Health Connect', onPress: openHealthConnectSettings },
+        ]
+      );
     }
     setHealthSyncing(false);
   };
@@ -147,6 +170,9 @@ export default function AcademiaScreen() {
                 disabled={healthSyncing}
                 onPress={connectHealth}
               />
+              <Pressable onPress={openHealthConnectSettings} hitSlop={8} style={{ marginTop: 12, alignSelf: 'center' }}>
+                <Text style={styles.healthLink}>Já neguei antes? Abrir Health Connect</Text>
+              </Pressable>
             </>
           )}
           {healthStatus === 'ready' && (

@@ -54,16 +54,21 @@ export async function hasHealthPermissions(): Promise<boolean> {
   }
 }
 
-export async function requestHealthPermissions(): Promise<boolean> {
+export type PermissionResult =
+  | { granted: true }
+  | { granted: false; reason: 'unsupported' | 'denied' | 'error'; error?: string };
+
+export async function requestHealthPermissions(): Promise<PermissionResult> {
   const hc = loadModule();
-  if (!hc) return false;
+  if (!hc) return { granted: false, reason: 'unsupported' };
   try {
     await hc.initialize();
     const granted = await hc.requestPermission(RECORD_TYPES.map((recordType) => ({ accessType: 'read', recordType })));
     const grantedTypes = new Set(granted.map((p) => p.recordType));
-    return RECORD_TYPES.every((t) => grantedTypes.has(t));
-  } catch {
-    return false;
+    const allGranted = RECORD_TYPES.every((t) => grantedTypes.has(t));
+    return allGranted ? { granted: true } : { granted: false, reason: 'denied' };
+  } catch (err: any) {
+    return { granted: false, reason: 'error', error: err?.message ?? String(err) };
   }
 }
 
