@@ -12,6 +12,16 @@ export type Goal = {
   deadline: string;
 };
 
+export type FinanceActivity = {
+  id: string;
+  goalId: string;
+  goalName: string;
+  goalIcon: string;
+  type: 'deposit' | 'withdraw';
+  amount: number;
+  date: string;
+};
+
 export type SleepEntry = { bed: string; wake: string };
 
 export type BodyWeightEntry = { id: string; date: string; weight: number };
@@ -27,6 +37,7 @@ export type LifeQuestState = {
   workoutLog: Record<string, Record<string, boolean>>;
   bodyWeightLog: BodyWeightEntry[];
   goals: Goal[];
+  financeActivity: FinanceActivity[];
   profile: { name: string; avatar: string; createdAt: string };
   stats: { bestStreak: number };
   character: {

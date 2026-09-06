@@ -66,6 +66,7 @@ export function createDefaultState(): LifeQuestState {
       { id: 'g1', name: 'Reserva de emergência', icon: '🛟', target: 10000, saved: 3200, deadline: '' },
       { id: 'g2', name: 'Viagem de fim de ano', icon: '✈️', target: 5000, saved: 800, deadline: '' },
     ],
+    financeActivity: [],
     profile: { name: 'Seu nome', avatar: '🙂', createdAt: dateKeyOffset(0) },
     stats: { bestStreak: 0 },
     character: {

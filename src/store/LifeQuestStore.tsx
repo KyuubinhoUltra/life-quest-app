@@ -387,6 +387,15 @@ export function LifeQuestProvider({ children }: { children: React.ReactNode }) {
         const goal = next.goals.find((g) => g.id === id);
         if (!goal) return prev;
         goal.saved += amount;
+        next.financeActivity.unshift({
+          id: Math.random().toString(36).slice(2, 9),
+          goalId: goal.id,
+          goalName: goal.name,
+          goalIcon: goal.icon,
+          type: 'deposit',
+          amount,
+          date: today,
+        });
         gainAttrXp(next, 'riqueza', XP_GOAL_DEPOSIT);
         const pct = goal.target > 0 ? (goal.saved / goal.target) * 100 : 0;
         if (pct >= 100 && !next.character.goalsCompleted[id]) {
@@ -396,19 +405,31 @@ export function LifeQuestProvider({ children }: { children: React.ReactNode }) {
         return next;
       });
     },
-    [gainAttrXp]
+    [gainAttrXp, today]
   );
 
-  const withdrawFromGoal = useCallback((id: string, amount: number) => {
-    if (!amount || amount <= 0) return;
-    setState((prev) => {
-      const next: LifeQuestState = JSON.parse(JSON.stringify(prev));
-      const goal = next.goals.find((g) => g.id === id);
-      if (!goal) return prev;
-      goal.saved = Math.max(0, goal.saved - amount);
-      return next;
-    });
-  }, []);
+  const withdrawFromGoal = useCallback(
+    (id: string, amount: number) => {
+      if (!amount || amount <= 0) return;
+      setState((prev) => {
+        const next: LifeQuestState = JSON.parse(JSON.stringify(prev));
+        const goal = next.goals.find((g) => g.id === id);
+        if (!goal) return prev;
+        goal.saved = Math.max(0, goal.saved - amount);
+        next.financeActivity.unshift({
+          id: Math.random().toString(36).slice(2, 9),
+          goalId: goal.id,
+          goalName: goal.name,
+          goalIcon: goal.icon,
+          type: 'withdraw',
+          amount,
+          date: today,
+        });
+        return next;
+      });
+    },
+    [today]
+  );
 
   const setGoalDeadline = useCallback((id: string, deadline: string) => {
     setState((prev) => ({

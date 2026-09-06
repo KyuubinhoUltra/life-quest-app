@@ -18,8 +18,22 @@ export function Eyebrow({ children }: { children: React.ReactNode }) {
   return <Text style={styles.eyebrow}>{children}</Text>;
 }
 
-export function BigFigure({ children, style }: { children: React.ReactNode; style?: TextStyle }) {
-  return <Text style={[styles.bigFigure, style]}>{children}</Text>;
+export function BigFigure({
+  children,
+  style,
+  numberOfLines,
+  adjustsFontSizeToFit,
+}: {
+  children: React.ReactNode;
+  style?: TextStyle;
+  numberOfLines?: number;
+  adjustsFontSizeToFit?: boolean;
+}) {
+  return (
+    <Text style={[styles.bigFigure, style]} numberOfLines={numberOfLines} adjustsFontSizeToFit={adjustsFontSizeToFit}>
+      {children}
+    </Text>
+  );
 }
 
 export function SubText({ children, style }: { children: React.ReactNode; style?: TextStyle }) {
