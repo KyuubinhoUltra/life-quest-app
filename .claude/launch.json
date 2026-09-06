@@ -1,0 +1,11 @@
+{
+  "version": "0.0.1",
+  "configurations": [
+    {
+      "name": "life-quest-app-web",
+      "runtimeExecutable": "C:\\Users\\Adrian de Oliveira\\Documents\\Life Quest\\LifeQuestApp\\run-web.bat",
+      "runtimeArgs": [],
+      "port": 8081
+    }
+  ]
+}

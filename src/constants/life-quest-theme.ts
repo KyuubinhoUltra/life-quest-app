@@ -1,0 +1,16 @@
+// Identidade visual fixa do Life Quest (preto + laranja) — não varia com o tema do sistema.
+export const LQ = {
+  paper: '#000000',
+  paperRaised: '#161616',
+  ink: '#F5F5F5',
+  inkSoft: '#9A9A9A',
+  inkFaint: '#676767',
+  line: '#2B2B2B',
+  lineSoft: '#1C1C1C',
+  gold: '#FF5C29',
+  goldInk: '#FF8659',
+  goldSoft: 'rgba(255,92,41,0.16)',
+  danger: '#EF4444',
+  dangerSoft: 'rgba(239,68,68,0.16)',
+  radius: 16,
+} as const;
