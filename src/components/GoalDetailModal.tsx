@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { Modal, Pressable, StyleSheet, Text, TextInput, View } from 'react-native';
+import { Alert, Modal, Pressable, StyleSheet, Text, TextInput, View } from 'react-native';
 import Svg, { Path } from 'react-native-svg';
 
 import { LQ } from '@/constants/life-quest-theme';
@@ -87,13 +87,7 @@ export function GoalDetailModal({ goal, alreadyCompleted, onClose, onDelete, onD
                 <Path d="M10 3L5 8l5 5" stroke={LQ.ink} strokeWidth={2} strokeLinecap="round" strokeLinejoin="round" />
               </Svg>
             </Pressable>
-            <Pressable
-              onPress={() => {
-                onDelete(goal.id);
-                closeAndReset();
-              }}
-              style={styles.iconBtn}
-              hitSlop={8}>
+            <Pressable onPress={closeAndReset} style={styles.iconBtn} hitSlop={8}>
               <Text style={{ color: LQ.inkFaint, fontSize: 16 }}>✕</Text>
             </Pressable>
           </View>
@@ -170,6 +164,24 @@ export function GoalDetailModal({ goal, alreadyCompleted, onClose, onDelete, onD
           <Text style={styles.hint}>
             +10 XP por aporte{alreadyCompleted ? '' : ' · +50 XP ao completar a meta'}
           </Text>
+
+          <Pressable
+            style={styles.deleteBtn}
+            onPress={() => {
+              Alert.alert('Excluir meta', `Tem certeza que deseja excluir "${goal.name}"? Essa ação não pode ser desfeita.`, [
+                { text: 'Cancelar', style: 'cancel' },
+                {
+                  text: 'Excluir',
+                  style: 'destructive',
+                  onPress: () => {
+                    onDelete(goal.id);
+                    closeAndReset();
+                  },
+                },
+              ]);
+            }}>
+            <Text style={styles.deleteBtnText}>Excluir meta</Text>
+          </Pressable>
         </View>
       </View>
     </Modal>
@@ -234,4 +246,6 @@ const styles = StyleSheet.create({
   confirmBtn: { backgroundColor: LQ.gold, borderRadius: 999, paddingVertical: 10, paddingHorizontal: 18, justifyContent: 'center' },
   confirmBtnText: { color: '#fff', fontWeight: '600', fontSize: 13 },
   hint: { color: LQ.inkFaint, fontSize: 11, textAlign: 'center', marginTop: 16 },
+  deleteBtn: { alignItems: 'center', marginTop: 16, padding: 6 },
+  deleteBtnText: { color: LQ.danger, fontSize: 12, fontFamily: LQ.fontBodySemiBold },
 });

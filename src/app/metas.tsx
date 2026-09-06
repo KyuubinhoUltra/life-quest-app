@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { Pressable, ScrollView, StyleSheet, Text, View } from 'react-native';
+import { Alert, Pressable, ScrollView, StyleSheet, Text, View } from 'react-native';
 import Svg, { Path } from 'react-native-svg';
 
 import { AddGoalModal } from '@/components/AddGoalModal';
@@ -175,7 +175,10 @@ export default function MetasScreen() {
               <Pressable
                 onPress={(e) => {
                   e.stopPropagation();
-                  deleteGoal(g.id);
+                  Alert.alert('Excluir meta', `Tem certeza que deseja excluir "${g.name}"? Essa ação não pode ser desfeita.`, [
+                    { text: 'Cancelar', style: 'cancel' },
+                    { text: 'Excluir', style: 'destructive', onPress: () => deleteGoal(g.id) },
+                  ]);
                 }}
                 hitSlop={8}>
                 <Text style={{ color: LQ.inkFaint, fontSize: 16 }}>✕</Text>
