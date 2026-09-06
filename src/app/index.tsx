@@ -2,6 +2,7 @@ import React from 'react';
 import { ScrollView, StyleSheet, Text, View } from 'react-native';
 
 import { AnimatedFlame } from '@/components/AnimatedFlame';
+import { FlameIcon } from '@/components/FlameIcon';
 import { BigFigure, Card, Eyebrow, ProgressBar, SubText } from '@/components/ui';
 import { LQ } from '@/constants/life-quest-theme';
 import { dateKeyOffset } from '@/store/dates';
@@ -38,7 +39,7 @@ export default function DashboardScreen() {
     <ScrollView style={styles.screen} contentContainerStyle={styles.content}>
       <Card style={styles.ofensivaCard}>
         <View style={styles.ofensivaTopRow}>
-          <AnimatedFlame active={lit} style={[styles.flame, !lit && styles.flameOff]} />
+          <AnimatedFlame active={lit} size={34} gradId="ofensivaFlameMain" />
           <View style={{ flex: 1 }}>
             <Text style={styles.ofensivaCount} numberOfLines={1} adjustsFontSizeToFit>
               <Text style={styles.ofensivaCountStrong}>{ofensiva}</Text>{' '}
@@ -58,12 +59,12 @@ export default function DashboardScreen() {
               ]}>
               {d.active ? (
                 d.isToday ? (
-                  <AnimatedFlame active style={{ fontSize: 20 }} />
+                  <AnimatedFlame active size={18} gradId={`ofensivaFlameDay-${d.key}`} />
                 ) : (
-                  <Text style={{ fontSize: 20 }}>🔥</Text>
+                  <FlameIcon size={18} lit gradId={`ofensivaFlameDay-${d.key}`} />
                 )
               ) : (
-                <Text style={{ fontSize: 12 }}>·</Text>
+                <Text style={{ fontSize: 12, color: LQ.inkFaint }}>·</Text>
               )}
             </View>
           ))}
@@ -134,8 +135,6 @@ const styles = StyleSheet.create({
   content: { padding: 16, gap: 16, paddingBottom: 40 },
   ofensivaCard: { gap: 14 },
   ofensivaTopRow: { flexDirection: 'row', alignItems: 'center', gap: 14 },
-  flame: { fontSize: 34 },
-  flameOff: { opacity: 0.35 },
   ofensivaCount: { color: LQ.ink, fontSize: 15, fontFamily: LQ.fontBodyBold, textTransform: 'uppercase' },
   ofensivaCountStrong: { color: LQ.goldInk },
   ofensivaDays: { flexDirection: 'row', gap: 6 },

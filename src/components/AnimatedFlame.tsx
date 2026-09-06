@@ -1,7 +1,9 @@
 import React, { useEffect, useRef } from 'react';
-import { Animated, Easing, StyleProp, Text, TextStyle } from 'react-native';
+import { Animated, Easing } from 'react-native';
 
-export function AnimatedFlame({ active, style }: { active: boolean; style?: StyleProp<TextStyle> }) {
+import { FlameIcon } from '@/components/FlameIcon';
+
+export function AnimatedFlame({ active, size = 24, gradId }: { active: boolean; size?: number; gradId: string }) {
   const t = useRef(new Animated.Value(0)).current;
 
   useEffect(() => {
@@ -17,14 +19,13 @@ export function AnimatedFlame({ active, style }: { active: boolean; style?: Styl
     return () => loop.stop();
   }, [active, t]);
 
-  const scale = t.interpolate({ inputRange: [0, 1], outputRange: [1, 1.28] });
-  const translateY = t.interpolate({ inputRange: [0, 1], outputRange: [0, -4] });
-  const rotate = t.interpolate({ inputRange: [0, 1], outputRange: ['-7deg', '7deg'] });
+  const scale = t.interpolate({ inputRange: [0, 1], outputRange: [1, 1.22] });
+  const translateY = t.interpolate({ inputRange: [0, 1], outputRange: [0, -3] });
+  const rotate = t.interpolate({ inputRange: [0, 1], outputRange: ['-6deg', '6deg'] });
 
   return (
-    <Animated.View
-      style={active ? { transform: [{ scale }, { translateY }, { rotate }] } : undefined}>
-      <Text style={style}>🔥</Text>
+    <Animated.View style={active ? { transform: [{ scale }, { translateY }, { rotate }] } : undefined}>
+      <FlameIcon size={size} lit={active} gradId={gradId} />
     </Animated.View>
   );
 }
