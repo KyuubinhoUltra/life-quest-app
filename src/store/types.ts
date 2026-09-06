@@ -1,6 +1,6 @@
 export type Habit = { id: string; name: string };
 
-export type WorkoutExercise = { id: string; name: string; target: string; weight: number };
+export type WorkoutExercise = { id: string; name: string; target: string; weight: number; cat?: string };
 export type WorkoutDayPlan = { title: string; exercises: WorkoutExercise[] };
 
 export type Goal = {

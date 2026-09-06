@@ -60,6 +60,7 @@ export default function AcademiaScreen() {
     timer.date === today ? timer.accumulatedSeconds + (timer.runningSince ? (Date.now() - timer.runningSince) / 1000 : 0) : 0;
 
   const durationToday = state.workoutDurations[today];
+  const totalTrained = Object.values(state.workoutDurations).reduce((s, v) => s + v, 0);
 
   const sortedWeights = [...state.bodyWeightLog].sort((a, b) => a.date.localeCompare(b.date));
   const lastWeight = sortedWeights[sortedWeights.length - 1];
@@ -85,6 +86,7 @@ export default function AcademiaScreen() {
           {running && <PillButton label="Pausar" variant="ghost" onPress={pauseWorkoutTimer} style={styles.timerBtn} />}
           {(running || paused) && <PillButton label="Finalizar treino" onPress={finishWorkoutTimer} style={styles.timerBtn} />}
         </View>
+        {totalTrained > 0 && <SubText style={styles.totalTrained}>Total acumulado: {fmtDuration(totalTrained)}</SubText>}
       </Card>
 
       <SectionTitle>Plano semanal</SectionTitle>
@@ -128,7 +130,7 @@ export default function AcademiaScreen() {
                   placeholderTextColor={LQ.inkFaint}
                   style={styles.weightInput}
                 />
-                <Text style={styles.kgLabel}>kg</Text>
+                <Text style={styles.kgLabel}>{ex.cat === 'Cardio' ? 'min' : 'kg'}</Text>
                 <XpBadge amount={XP_EXERCISE} />
                 <Pressable onPress={() => deleteExercise(activeWeekday, ex.id)} hitSlop={8}>
                   <Text style={{ color: LQ.inkFaint, fontSize: 16, marginLeft: 4 }}>✕</Text>
@@ -203,7 +205,7 @@ export default function AcademiaScreen() {
         weekdayLabel={WEEKDAY_FULL[WEEKDAYS.indexOf(activeWeekday as (typeof WEEKDAYS)[number])]}
         existingNames={plan?.exercises.map((e) => e.name) ?? []}
         onClose={() => setPickerOpen(false)}
-        onAdd={(ex: LibraryExercise) => addExercise(activeWeekday, ex.name, ex.target, 0)}
+        onAdd={(ex: LibraryExercise) => addExercise(activeWeekday, ex.name, ex.target, 0, ex.cat)}
       />
     </ScrollView>
   );
@@ -216,6 +218,7 @@ const styles = StyleSheet.create({
   timerFigure: { fontSize: 32, textAlign: 'center', marginVertical: 4 },
   timerActions: { flexDirection: 'row', gap: 8, marginTop: 12, justifyContent: 'center' },
   timerBtn: { minWidth: 110 },
+  totalTrained: { textAlign: 'center', marginTop: 10 },
   weekdayRow: { flexDirection: 'row', gap: 8, flexWrap: 'wrap' },
   weekdayPill: {
     paddingVertical: 8,

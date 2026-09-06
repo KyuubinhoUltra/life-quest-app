@@ -38,7 +38,7 @@ type Ctx = {
   saveSleep: (bed: string, wake: string) => void;
   workoutDayKey: (weekdayKey: string) => string;
   toggleExercise: (weekdayKey: string, exId: string) => void;
-  addExercise: (weekdayKey: string, name: string, target: string, weight: number) => void;
+  addExercise: (weekdayKey: string, name: string, target: string, weight: number, cat?: string) => void;
   deleteExercise: (weekdayKey: string, exId: string) => void;
   setExerciseWeight: (weekdayKey: string, exId: string, weight: number) => void;
   addWeightEntry: (date: string, weight: number) => void;
@@ -278,7 +278,7 @@ export function LifeQuestProvider({ children }: { children: React.ReactNode }) {
     [checkDailyBonuses, gainAttrXp, today, weekday]
   );
 
-  const addExercise = useCallback((weekdayKey: string, name: string, target: string, weight: number) => {
+  const addExercise = useCallback((weekdayKey: string, name: string, target: string, weight: number, cat?: string) => {
     const trimmed = name.trim();
     if (!trimmed) return;
     setState((prev) => {
@@ -289,6 +289,7 @@ export function LifeQuestProvider({ children }: { children: React.ReactNode }) {
         name: trimmed,
         target: target.trim() || '—',
         weight: weight || 0,
+        cat,
       });
       next.workoutPlan[weekdayKey] = plan;
       return next;
@@ -357,7 +358,7 @@ export function LifeQuestProvider({ children }: { children: React.ReactNode }) {
       const total = t.date === today ? t.accumulatedSeconds + extra : 0;
       return {
         ...prev,
-        workoutDurations: { ...prev.workoutDurations, [today]: Math.round(total) },
+        workoutDurations: { ...prev.workoutDurations, [today]: (prev.workoutDurations[today] || 0) + Math.round(total) },
         workoutTimer: { date: today, accumulatedSeconds: 0, runningSince: null },
       };
     });

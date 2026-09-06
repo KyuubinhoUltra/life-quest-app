@@ -4,6 +4,11 @@ export type HealthMetrics = { steps: number; calories: number; exerciseMinutes: 
 
 const RECORD_TYPES = ['Steps', 'ActiveCaloriesBurned', 'ExerciseSession'] as const;
 
+// Filtra a agregação pra vir só do Samsung Health, em vez de somar todas as
+// fontes que escrevem no Health Connect — evita contagem duplicada quando
+// mais de um app/relógio contribui com os mesmos dados.
+const SAMSUNG_HEALTH_PACKAGE = 'com.sec.android.app.shealth';
+
 // react-native-health-connect requires a native module that Expo Go doesn't ship.
 // Loading it lazily (only when actually called, on Android) keeps Expo Go usable
 // for everything else instead of crashing the whole bundle on import.
@@ -77,10 +82,11 @@ export async function fetchTodayHealthMetrics(): Promise<HealthMetrics | null> {
   if (!hc) return null;
   const timeRangeFilter = todayRange();
   try {
+    const dataOriginFilter = [SAMSUNG_HEALTH_PACKAGE];
     const [stepsRes, caloriesRes, exerciseRes] = await Promise.all([
-      hc.aggregateRecord({ recordType: 'Steps', timeRangeFilter }),
-      hc.aggregateRecord({ recordType: 'ActiveCaloriesBurned', timeRangeFilter }),
-      hc.aggregateRecord({ recordType: 'ExerciseSession', timeRangeFilter }),
+      hc.aggregateRecord({ recordType: 'Steps', timeRangeFilter, dataOriginFilter }),
+      hc.aggregateRecord({ recordType: 'ActiveCaloriesBurned', timeRangeFilter, dataOriginFilter }),
+      hc.aggregateRecord({ recordType: 'ExerciseSession', timeRangeFilter, dataOriginFilter }),
     ]);
     return {
       steps: stepsRes.COUNT_TOTAL ?? 0,

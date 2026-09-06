@@ -22,37 +22,43 @@ export function createDefaultState(): LifeQuestState {
       Seg: {
         title: 'Peito & Tríceps',
         exercises: [
-          { id: 'e1', name: 'Supino reto', target: '4x10', weight: 0 },
-          { id: 'e2', name: 'Supino inclinado halteres', target: '3x12', weight: 0 },
-          { id: 'e3', name: 'Tríceps corda', target: '3x15', weight: 0 },
+          { id: 'e1', name: 'Supino reto', target: '4x10', weight: 0, cat: 'Peito' },
+          { id: 'e2', name: 'Supino inclinado halteres', target: '3x12', weight: 0, cat: 'Peito' },
+          { id: 'e3', name: 'Tríceps corda', target: '3x15', weight: 0, cat: 'Tríceps' },
         ],
       },
       Ter: {
         title: 'Costas & Bíceps',
         exercises: [
-          { id: 'e4', name: 'Puxada frente', target: '4x10', weight: 0 },
-          { id: 'e5', name: 'Remada curvada', target: '3x12', weight: 0 },
-          { id: 'e6', name: 'Rosca direta', target: '3x15', weight: 0 },
+          { id: 'e4', name: 'Puxada frente', target: '4x10', weight: 0, cat: 'Costas' },
+          { id: 'e5', name: 'Remada curvada', target: '3x12', weight: 0, cat: 'Costas' },
+          { id: 'e6', name: 'Rosca direta', target: '3x15', weight: 0, cat: 'Bíceps' },
         ],
       },
-      Qua: { title: 'Descanso ativo', exercises: [{ id: 'e7', name: 'Caminhada 30min', target: '1x', weight: 0 }] },
+      Qua: {
+        title: 'Descanso ativo',
+        exercises: [{ id: 'e7', name: 'Caminhada 30min', target: '1x', weight: 0, cat: 'Cardio' }],
+      },
       Qui: {
         title: 'Pernas',
         exercises: [
-          { id: 'e8', name: 'Agachamento livre', target: '4x10', weight: 0 },
-          { id: 'e9', name: 'Leg press', target: '3x12', weight: 0 },
-          { id: 'e10', name: 'Panturrilha em pé', target: '4x15', weight: 0 },
+          { id: 'e8', name: 'Agachamento livre', target: '4x10', weight: 0, cat: 'Pernas' },
+          { id: 'e9', name: 'Leg press', target: '3x12', weight: 0, cat: 'Pernas' },
+          { id: 'e10', name: 'Panturrilha em pé', target: '4x15', weight: 0, cat: 'Panturrilha' },
         ],
       },
       Sex: {
         title: 'Ombro & Abdômen',
         exercises: [
-          { id: 'e11', name: 'Desenvolvimento militar', target: '4x10', weight: 0 },
-          { id: 'e12', name: 'Elevação lateral', target: '3x15', weight: 0 },
-          { id: 'e13', name: 'Prancha', target: '3x45s', weight: 0 },
+          { id: 'e11', name: 'Desenvolvimento militar', target: '4x10', weight: 0, cat: 'Ombro' },
+          { id: 'e12', name: 'Elevação lateral', target: '3x15', weight: 0, cat: 'Ombro' },
+          { id: 'e13', name: 'Prancha', target: '3x45s', weight: 0, cat: 'Abdômen' },
         ],
       },
-      Sáb: { title: 'Cardio livre', exercises: [{ id: 'e14', name: 'Corrida ou bike 40min', target: '1x', weight: 0 }] },
+      Sáb: {
+        title: 'Cardio livre',
+        exercises: [{ id: 'e14', name: 'Corrida ou bike 40min', target: '1x', weight: 0, cat: 'Cardio' }],
+      },
       Dom: { title: 'Descanso', exercises: [] },
     },
     workoutLog: {},
