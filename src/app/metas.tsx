@@ -1,13 +1,13 @@
 import React, { useState } from 'react';
-import { Pressable, ScrollView, StyleSheet, Text, TextInput, View } from 'react-native';
+import { Pressable, ScrollView, StyleSheet, Text, View } from 'react-native';
+import Svg, { Path } from 'react-native-svg';
 
+import { AddGoalModal } from '@/components/AddGoalModal';
 import { GoalDetailModal } from '@/components/GoalDetailModal';
 import { GoalRing } from '@/components/GoalRing';
-import { BigFigure, Card, Eyebrow, PillButton, SectionTitle, SubText, XpBadge } from '@/components/ui';
+import { BigFigure, Card, Eyebrow, SectionTitle, SubText, XpBadge } from '@/components/ui';
 import { LQ } from '@/constants/life-quest-theme';
 import { XP_GOAL_DEPOSIT, useLifeQuest } from '@/store/LifeQuestStore';
-
-const GOAL_ICONS = ['🎯', '💰', '🛟', '✈️', '🏠', '🚗', '🎓', '💍', '📱', '🛋️', '🏖️', '🎁'];
 
 function formatBRL(n: number): string {
   return 'R$' + n.toLocaleString('pt-BR', { minimumFractionDigits: 2, maximumFractionDigits: 2 });
@@ -35,9 +35,7 @@ export default function MetasScreen() {
   const { state, today, addGoal, deleteGoal, depositToGoal, withdrawFromGoal, setGoalDeadline } = useLifeQuest();
 
   const [selectedId, setSelectedId] = useState<string | null>(null);
-  const [name, setName] = useState('');
-  const [target, setTarget] = useState('');
-  const [icon, setIcon] = useState(GOAL_ICONS[0]);
+  const [addOpen, setAddOpen] = useState(false);
 
   const selectedGoal = state.goals.find((g) => g.id === selectedId) ?? null;
 
@@ -136,10 +134,18 @@ export default function MetasScreen() {
         </Card>
       )}
 
-      <SectionTitle>Suas metas</SectionTitle>
+      <View style={styles.sectionHeader}>
+        <SectionTitle>Suas metas</SectionTitle>
+        <Pressable style={styles.newGoalBtn} onPress={() => setAddOpen(true)}>
+          <Svg viewBox="0 0 16 16" width={12} height={12} fill="none">
+            <Path d="M8 2v12M2 8h12" stroke="#fff" strokeWidth={2} strokeLinecap="round" />
+          </Svg>
+          <Text style={styles.newGoalBtnText}>Nova meta</Text>
+        </Pressable>
+      </View>
 
       {state.goals.length === 0 ? (
-        <SubText>Nenhuma meta ainda. Crie uma abaixo.</SubText>
+        <SubText>Nenhuma meta ainda. Toque em "Nova meta" para criar a primeira.</SubText>
       ) : (
         state.goals.map((g) => {
           const pct = g.target > 0 ? (g.saved / g.target) * 100 : 0;
@@ -179,40 +185,7 @@ export default function MetasScreen() {
         })
       )}
 
-      <View style={styles.addForm}>
-        <View style={styles.iconRow}>
-          {GOAL_ICONS.map((ic) => (
-            <Pressable key={ic} onPress={() => setIcon(ic)} style={[styles.iconOption, icon === ic && styles.iconOptionActive]}>
-              <Text style={{ fontSize: 16 }}>{ic}</Text>
-            </Pressable>
-          ))}
-        </View>
-        <TextInput
-          value={name}
-          onChangeText={setName}
-          placeholder="Nome da meta, ex.: Viagem"
-          placeholderTextColor={LQ.inkFaint}
-          style={styles.input}
-        />
-        <TextInput
-          value={target}
-          onChangeText={setTarget}
-          placeholder="Valor alvo (R$)"
-          placeholderTextColor={LQ.inkFaint}
-          keyboardType="numeric"
-          style={styles.input}
-        />
-        <PillButton
-          label="Criar meta"
-          onPress={() => {
-            const val = Number(target.replace(',', '.'));
-            addGoal(name, icon, val, '');
-            setName('');
-            setTarget('');
-          }}
-          style={{ width: '100%' }}
-        />
-      </View>
+      <AddGoalModal visible={addOpen} onClose={() => setAddOpen(false)} onCreate={addGoal} />
 
       <GoalDetailModal
         goal={selectedGoal}
@@ -283,34 +256,16 @@ const styles = StyleSheet.create({
   },
   smallGhostBtnText: { color: LQ.ink, fontSize: 12, fontWeight: '600' },
   deadline: { color: LQ.inkFaint, fontSize: 11, marginTop: 6 },
-  addForm: {
-    borderWidth: 1,
-    borderColor: LQ.line,
-    borderRadius: LQ.radius,
-    backgroundColor: LQ.paperRaised,
-    padding: 14,
-    gap: 10,
-    marginTop: 8,
-  },
-  iconRow: { flexDirection: 'row', flexWrap: 'wrap', gap: 8 },
-  iconOption: {
-    width: 36,
-    height: 36,
-    borderRadius: 18,
-    borderWidth: 1,
-    borderColor: LQ.line,
-    backgroundColor: LQ.paper,
+  sectionHeader: { flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between' },
+  newGoalBtn: {
+    flexDirection: 'row',
     alignItems: 'center',
-    justifyContent: 'center',
-  },
-  iconOptionActive: { borderColor: LQ.gold, backgroundColor: LQ.goldSoft },
-  input: {
-    backgroundColor: LQ.paper,
-    borderWidth: 1,
-    borderColor: LQ.line,
-    borderRadius: LQ.radius,
-    color: LQ.ink,
-    paddingVertical: 10,
+    gap: 6,
+    backgroundColor: LQ.gold,
+    borderRadius: 999,
+    paddingVertical: 8,
     paddingHorizontal: 14,
+    marginBottom: 14,
   },
+  newGoalBtnText: { color: '#fff', fontFamily: LQ.fontBodySemiBold, fontSize: 12 },
 });
