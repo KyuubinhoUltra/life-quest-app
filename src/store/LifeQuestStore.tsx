@@ -36,6 +36,7 @@ type Ctx = {
   deleteHabit: (id: string) => void;
   addWater: (deltaMl: number) => void;
   saveSleep: (bed: string, wake: string) => void;
+  deleteSleepEntry: () => void;
   workoutDayKey: (weekdayKey: string) => string;
   toggleExercise: (weekdayKey: string, exId: string) => void;
   addExercise: (weekdayKey: string, name: string, target: string, weight: number, cat?: string) => void;
@@ -255,6 +256,15 @@ export function LifeQuestProvider({ children }: { children: React.ReactNode }) {
     },
     [checkDailyBonuses, today]
   );
+
+  const deleteSleepEntry = useCallback(() => {
+    setState((prev) => {
+      if (!prev.sleepLog[today]) return prev;
+      const next = { ...prev.sleepLog };
+      delete next[today];
+      return { ...prev, sleepLog: next };
+    });
+  }, [today]);
 
   // dia real (hoje) para o dia da semana selecionado, ou uma chave fixa de "modelo" para outros dias
   const workoutDayKey = useCallback(
@@ -516,6 +526,7 @@ export function LifeQuestProvider({ children }: { children: React.ReactNode }) {
       deleteHabit,
       addWater,
       saveSleep,
+      deleteSleepEntry,
       workoutDayKey,
       toggleExercise,
       addExercise,
@@ -554,6 +565,7 @@ export function LifeQuestProvider({ children }: { children: React.ReactNode }) {
       deleteHabit,
       addWater,
       saveSleep,
+      deleteSleepEntry,
       workoutDayKey,
       toggleExercise,
       addExercise,

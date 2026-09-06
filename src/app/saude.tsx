@@ -1,13 +1,16 @@
 import React, { useState } from 'react';
-import { ScrollView, StyleSheet, Text, TextInput, View } from 'react-native';
+import { ScrollView, StyleSheet, Text, View } from 'react-native';
 
 import { Gauge } from '@/components/Gauge';
 import { HealthConnectCard } from '@/components/HealthConnectCard';
-import { BigFigure, Card, Eyebrow, PillButton, SubText } from '@/components/ui';
+import { hmFromMinutes, minutesFromHM, SleepDial } from '@/components/SleepDial';
+import { BigFigure, Card, Eyebrow, PillButton, SectionTitle, SubText } from '@/components/ui';
 import { LQ } from '@/constants/life-quest-theme';
 import { SLEEP_TARGET_H, useLifeQuest } from '@/store/LifeQuestStore';
 
 const ML_PER_KG = 35;
+const DEFAULT_BED_MIN = 23 * 60;
+const DEFAULT_WAKE_MIN = 7 * 60;
 
 function fmtLiters(ml: number): string {
   return (ml / 1000).toLocaleString('pt-BR', { minimumFractionDigits: 2, maximumFractionDigits: 2 });
@@ -23,17 +26,18 @@ function sleepHoursFromTimes(bed?: string, wake?: string): number | null {
 }
 
 export default function SaudeScreen() {
-  const { state, today, addWater, saveSleep, latestBodyWeight, waterTargetMl } = useLifeQuest();
+  const { state, today, addWater, saveSleep, deleteSleepEntry, latestBodyWeight, waterTargetMl } = useLifeQuest();
 
-  const [bed, setBed] = useState(state.sleepLog[today]?.bed ?? '');
-  const [wake, setWake] = useState(state.sleepLog[today]?.wake ?? '');
+  const todaySleep = state.sleepLog[today];
+  const [bedMin, setBedMin] = useState(minutesFromHM(todaySleep?.bed ?? '', DEFAULT_BED_MIN));
+  const [wakeMin, setWakeMin] = useState(minutesFromHM(todaySleep?.wake ?? '', DEFAULT_WAKE_MIN));
 
   const consumed = state.waterLog[today] || 0;
   const target = waterTargetMl();
   const weight = latestBodyWeight();
   const waterPct = target ? Math.min(100, Math.round((consumed / target) * 100)) : 0;
 
-  const hours = sleepHoursFromTimes(state.sleepLog[today]?.bed, state.sleepLog[today]?.wake);
+  const hours = sleepHoursFromTimes(todaySleep?.bed, todaySleep?.wake);
   const sleepPct = hours ? Math.min(100, Math.round((hours / SLEEP_TARGET_H) * 100)) : 0;
 
   return (
@@ -81,32 +85,33 @@ export default function SaudeScreen() {
                 ? 'Meta de sono batida 🌙'
                 : `${(SLEEP_TARGET_H - hours).toLocaleString('pt-BR', { maximumFractionDigits: 1 })}h a menos que o recomendado`}
           </SubText>
-          <View style={styles.sleepInputs}>
-            <View style={styles.sleepField}>
-              <Text style={styles.sleepLabel}>Dormi às</Text>
-              <TextInput
-                value={bed}
-                onChangeText={setBed}
-                placeholder="23:00"
-                placeholderTextColor={LQ.inkFaint}
-                style={styles.timeInput}
-              />
-            </View>
-            <View style={styles.sleepField}>
-              <Text style={styles.sleepLabel}>Acordei às</Text>
-              <TextInput
-                value={wake}
-                onChangeText={setWake}
-                placeholder="07:00"
-                placeholderTextColor={LQ.inkFaint}
-                style={styles.timeInput}
-              />
-            </View>
-          </View>
-          <PillButton label="Registrar" variant="ghost" onPress={() => saveSleep(bed, wake)} style={{ marginTop: 10 }} />
-          <SubText style={styles.hint}>Recomendado: {SLEEP_TARGET_H}h por noite · +15 XP ao bater a meta</SubText>
         </Card>
       </View>
+
+      <SectionTitle>Registrar sono</SectionTitle>
+      <Card>
+        <SleepDial bedMinutes={bedMin} wakeMinutes={wakeMin} onChange={(b, w) => { setBedMin(b); setWakeMin(w); }} />
+        <View style={styles.sleepActions}>
+          <PillButton
+            label="Registrar"
+            onPress={() => saveSleep(hmFromMinutes(bedMin), hmFromMinutes(wakeMin))}
+            style={{ flex: 1 }}
+          />
+        </View>
+        {!!todaySleep && (
+          <PillButton
+            label="Excluir registro de sono"
+            variant="ghost"
+            onPress={() => {
+              deleteSleepEntry();
+              setBedMin(DEFAULT_BED_MIN);
+              setWakeMin(DEFAULT_WAKE_MIN);
+            }}
+            style={{ marginTop: 10 }}
+          />
+        )}
+        <SubText style={styles.hint}>Recomendado: {SLEEP_TARGET_H}h por noite · +15 XP ao bater a meta</SubText>
+      </Card>
     </ScrollView>
   );
 }
@@ -120,18 +125,6 @@ const styles = StyleSheet.create({
   figureSmall: { fontSize: 14, color: LQ.inkSoft, fontWeight: '500' },
   waterActions: { flexDirection: 'row', gap: 6, marginTop: 12 },
   waterBtn: { flex: 1, paddingHorizontal: 4 },
-  hint: { fontSize: 11, marginTop: 8, textAlign: 'center' },
-  sleepInputs: { flexDirection: 'row', gap: 8, marginTop: 12 },
-  sleepField: { flex: 1, gap: 4 },
-  sleepLabel: { fontSize: 10, color: LQ.inkFaint, textTransform: 'uppercase', letterSpacing: 0.5, fontWeight: '600' },
-  timeInput: {
-    backgroundColor: LQ.paper,
-    borderWidth: 1,
-    borderColor: LQ.line,
-    borderRadius: LQ.radius,
-    color: LQ.ink,
-    paddingVertical: 8,
-    paddingHorizontal: 10,
-    textAlign: 'center',
-  },
+  hint: { fontSize: 11, marginTop: 14, textAlign: 'center' },
+  sleepActions: { flexDirection: 'row', gap: 8, marginTop: 6 },
 });

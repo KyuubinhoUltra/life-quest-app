@@ -69,26 +69,6 @@ export default function AcademiaScreen() {
 
   return (
     <ScrollView style={styles.screen} contentContainerStyle={styles.content}>
-      <Card style={styles.timerCard}>
-        <Eyebrow>Tempo de treino</Eyebrow>
-        <BigFigure style={styles.timerFigure}>{fmtDuration(elapsed)}</BigFigure>
-        <SubText style={{ textAlign: 'center' }}>
-          {running
-            ? 'Treino em andamento'
-            : paused
-              ? 'Pausado — toque em iniciar para continuar'
-              : durationToday
-                ? `Treino de hoje: ${fmtDuration(durationToday)} registrados`
-                : 'Toque em iniciar quando começar a treinar'}
-        </SubText>
-        <View style={styles.timerActions}>
-          {!running && <PillButton label="Iniciar" variant="ghost" onPress={startWorkoutTimer} style={styles.timerBtn} />}
-          {running && <PillButton label="Pausar" variant="ghost" onPress={pauseWorkoutTimer} style={styles.timerBtn} />}
-          {(running || paused) && <PillButton label="Finalizar treino" onPress={finishWorkoutTimer} style={styles.timerBtn} />}
-        </View>
-        {totalTrained > 0 && <SubText style={styles.totalTrained}>Total acumulado: {fmtDuration(totalTrained)}</SubText>}
-      </Card>
-
       <SectionTitle>Plano semanal</SectionTitle>
       <View style={styles.weekdayRow}>
         {WEEKDAYS.map((wd) => (
@@ -141,6 +121,26 @@ export default function AcademiaScreen() {
         )}
       </Card>
       <PillButton label="+ Adicionar exercício" onPress={() => setPickerOpen(true)} style={{ width: '100%' }} />
+
+      <Card style={styles.timerCard}>
+        <Eyebrow>Tempo de treino</Eyebrow>
+        <BigFigure style={styles.timerFigure}>{fmtDuration(elapsed)}</BigFigure>
+        <SubText style={{ textAlign: 'center' }}>
+          {running
+            ? 'Treino em andamento'
+            : paused
+              ? 'Pausado — toque em iniciar para continuar'
+              : durationToday
+                ? `Treino de hoje: ${fmtDuration(durationToday)} registrados`
+                : 'Toque em iniciar quando começar a treinar'}
+        </SubText>
+        <View style={styles.timerActions}>
+          {!running && <PillButton label="Iniciar" variant="ghost" onPress={startWorkoutTimer} style={styles.timerBtn} />}
+          {running && <PillButton label="Pausar" variant="ghost" onPress={pauseWorkoutTimer} style={styles.timerBtn} />}
+          {(running || paused) && <PillButton label="Finalizar treino" onPress={finishWorkoutTimer} style={styles.timerBtn} />}
+        </View>
+        {totalTrained > 0 && <SubText style={styles.totalTrained}>Total acumulado: {fmtDuration(totalTrained)}</SubText>}
+      </Card>
 
       <SectionTitle>Peso corporal — registro semanal</SectionTitle>
       {lastWeight && (
