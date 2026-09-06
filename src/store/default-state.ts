@@ -85,5 +85,6 @@ export function createDefaultState(): LifeQuestState {
     },
     workoutTimer: { date: null, accumulatedSeconds: 0, runningSince: null },
     workoutDurations: {},
+    dailyMissionsClaimed: {},
   };
 }

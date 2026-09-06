@@ -4,6 +4,7 @@ import Svg, { Path } from 'react-native-svg';
 
 import { Card, PillButton, SectionTitle, SubText, XpBadge } from '@/components/ui';
 import { LQ } from '@/constants/life-quest-theme';
+import { WEEKLY_MISSIONS } from '@/store/daily-missions';
 import { XP_HABIT, useLifeQuest } from '@/store/LifeQuestStore';
 
 function CheckIcon({ checked }: { checked: boolean }) {
@@ -16,14 +17,54 @@ function CheckIcon({ checked }: { checked: boolean }) {
 }
 
 export default function RotinaScreen() {
-  const { state, today, toggleHabit, addHabit, deleteHabit, habitStreak } = useLifeQuest();
+  const {
+    state,
+    today,
+    currentWeekdayKey,
+    toggleHabit,
+    addHabit,
+    deleteHabit,
+    habitStreak,
+    isMissionDone,
+    claimDailyMission,
+  } = useLifeQuest();
 
   const [newHabit, setNewHabit] = useState('');
 
   const doneToday = state.habitHistory[today] || [];
+  const todaysMissions = WEEKLY_MISSIONS[currentWeekdayKey] || [];
+  const claimedToday = state.dailyMissionsClaimed[today] || [];
 
   return (
     <ScrollView style={styles.screen} contentContainerStyle={styles.content}>
+      <SectionTitle>Desafios do dia</SectionTitle>
+      <Card>
+        {todaysMissions.map((mission, i) => {
+          const done = isMissionDone(mission);
+          const claimed = claimedToday.includes(mission.id);
+          return (
+            <View key={mission.id} style={[styles.habitRow, i > 0 && styles.habitRowBorder]}>
+              <View style={[styles.checkbox, done && styles.checkboxDone]}>
+                <CheckIcon checked={done} />
+              </View>
+              <Text style={[styles.habitName, claimed && styles.habitNameDone]}>{mission.label}</Text>
+              <XpBadge amount={mission.xp} />
+              {claimed ? (
+                <Text style={styles.claimedText}>Resgatada</Text>
+              ) : (
+                <PillButton
+                  label="Resgatar"
+                  variant="ghost"
+                  disabled={!done}
+                  onPress={() => claimDailyMission(mission)}
+                  style={styles.claimBtn}
+                />
+              )}
+            </View>
+          );
+        })}
+      </Card>
+
       <SectionTitle>Missões de hoje</SectionTitle>
       <Card>
         {state.habits.length === 0 ? (
@@ -91,6 +132,8 @@ const styles = StyleSheet.create({
   habitNameDone: { color: LQ.inkFaint, textDecorationLine: 'line-through' },
   streakBadge: { backgroundColor: LQ.goldSoft, borderRadius: 10, paddingHorizontal: 7, paddingVertical: 2 },
   streakBadgeText: { color: LQ.goldInk, fontSize: 10, fontWeight: '600' },
+  claimBtn: { paddingVertical: 6, paddingHorizontal: 12 },
+  claimedText: { color: LQ.gold, fontSize: 11, fontFamily: LQ.fontBodySemiBold },
   addRow: { flexDirection: 'row', gap: 8 },
   addInput: {
     flex: 1,

@@ -50,6 +50,7 @@ export type LifeQuestState = {
   };
   workoutTimer: { date: string | null; accumulatedSeconds: number; runningSince: number | null };
   workoutDurations: Record<string, number>;
+  dailyMissionsClaimed: Record<string, string[]>;
 };
 
 export const WEEKDAYS = ['Seg', 'Ter', 'Qua', 'Qui', 'Sex', 'Sáb', 'Dom'] as const;

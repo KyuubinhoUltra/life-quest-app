@@ -2,6 +2,7 @@ import AsyncStorage from '@react-native-async-storage/async-storage';
 import React, { createContext, useCallback, useContext, useEffect, useMemo, useRef, useState } from 'react';
 
 import { createDefaultState } from './default-state';
+import { MissionDef } from './daily-missions';
 import { currentWeekday, dateKeyOffset, todayStr } from './dates';
 import { LifeQuestState } from './types';
 
@@ -63,6 +64,8 @@ type Ctx = {
   resetAllData: () => Promise<void>;
   longestHabitStreak: () => number;
   avgSleepLast7d: () => number | null;
+  isMissionDone: (mission: MissionDef) => boolean;
+  claimDailyMission: (mission: MissionDef) => void;
 };
 
 const LifeQuestContext = createContext<Ctx | null>(null);
@@ -510,6 +513,58 @@ export function LifeQuestProvider({ children }: { children: React.ReactNode }) {
     return count ? total / count : null;
   }, [state.sleepLog]);
 
+  const isMissionDone = useCallback(
+    (mission: MissionDef) => {
+      switch (mission.check) {
+        case 'water': {
+          const target = waterTargetMl();
+          return !!target && (state.waterLog[today] || 0) >= target;
+        }
+        case 'sleep': {
+          const entry = state.sleepLog[today];
+          if (!entry?.bed || !entry?.wake) return false;
+          const [bh, bm] = entry.bed.split(':').map(Number);
+          const [wh, wm] = entry.wake.split(':').map(Number);
+          let diff = wh * 60 + wm - (bh * 60 + bm);
+          if (diff <= 0) diff += 24 * 60;
+          return diff / 60 >= SLEEP_TARGET_H;
+        }
+        case 'workout':
+          return (state.workoutDurations[today] || 0) > 0;
+        case 'habits':
+          return state.habits.length > 0 && (state.habitHistory[today] || []).length === state.habits.length;
+        case 'goalDeposit':
+          return state.financeActivity.some((a) => a.date === today && a.type === 'deposit');
+        default:
+          return false;
+      }
+    },
+    [
+      waterTargetMl,
+      state.waterLog,
+      state.sleepLog,
+      state.workoutDurations,
+      state.habits,
+      state.habitHistory,
+      state.financeActivity,
+      today,
+    ]
+  );
+
+  const claimDailyMission = useCallback(
+    (mission: MissionDef) => {
+      setState((prev) => {
+        const claimed = prev.dailyMissionsClaimed[today] || [];
+        if (claimed.includes(mission.id)) return prev;
+        const next: LifeQuestState = JSON.parse(JSON.stringify(prev));
+        next.dailyMissionsClaimed[today] = [...claimed, mission.id];
+        gainAttrXp(next, mission.attr, mission.xp);
+        return next;
+      });
+    },
+    [gainAttrXp, today]
+  );
+
   // atualiza o recorde de ofensiva sempre que o estado relevante muda
   useEffect(() => {
     if (!ready) return;
@@ -560,6 +615,8 @@ export function LifeQuestProvider({ children }: { children: React.ReactNode }) {
       resetAllData,
       longestHabitStreak,
       avgSleepLast7d,
+      isMissionDone,
+      claimDailyMission,
     }),
     [
       state,
@@ -600,6 +657,8 @@ export function LifeQuestProvider({ children }: { children: React.ReactNode }) {
       resetAllData,
       longestHabitStreak,
       avgSleepLast7d,
+      isMissionDone,
+      claimDailyMission,
     ]
   );
 
