@@ -79,3 +79,18 @@ export function HeartIcon({ size = 22, color = LQ.inkFaint }: Props) {
     </Svg>
   );
 }
+
+export function UsersIcon({ size = 22, color = LQ.inkFaint }: Props) {
+  return (
+    <Svg width={size} height={size} viewBox="0 0 24 24" fill="none">
+      <Circle cx={9} cy={8} r={3.2} stroke={color} strokeWidth={1.8} />
+      <Path d="M3 20c0-3.3 2.7-6 6-6s6 2.7 6 6" stroke={color} strokeWidth={1.8} strokeLinecap="round" />
+      <Path
+        d="M15.5 6.2c1.4.4 2.5 1.7 2.5 3.3 0 1.5-1 2.8-2.4 3.2M18 14.3c2.2.6 3.8 2.6 3.8 4.9"
+        stroke={color}
+        strokeWidth={1.8}
+        strokeLinecap="round"
+      />
+    </Svg>
+  );
+}

@@ -49,6 +49,13 @@
             "minSdkVersion": 26
           }
         }
+      ],
+      [
+        "expo-image-picker",
+        {
+          "photosPermission": "O Life Quest usa suas fotos para você publicar fotos dos treinos na Comunidade.",
+          "cameraPermission": "O Life Quest usa a câmera para você tirar fotos dos treinos e publicar na Comunidade."
+        }
       ]
     ],
     "experiments": {
