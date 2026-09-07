@@ -13,7 +13,7 @@ export type CommunityPost = {
 export async function fetchFeed(): Promise<CommunityPost[]> {
   const { data, error } = await supabase
     .from('posts')
-    .select('id, user_id, photo_url, caption, created_at, profiles(username, avatar), likes(user_id)')
+    .select('id, user_id, photo_url, caption, created_at, profiles!posts_user_id_fkey(username, avatar), likes(user_id)')
     .order('created_at', { ascending: false })
     .limit(50);
   if (error) throw error;
