@@ -36,8 +36,20 @@ export function BigFigure({
   );
 }
 
-export function SubText({ children, style }: { children: React.ReactNode; style?: TextStyle }) {
-  return <Text style={[styles.sub, style]}>{children}</Text>;
+export function SubText({
+  children,
+  style,
+  numberOfLines,
+}: {
+  children: React.ReactNode;
+  style?: TextStyle;
+  numberOfLines?: number;
+}) {
+  return (
+    <Text style={[styles.sub, style]} numberOfLines={numberOfLines}>
+      {children}
+    </Text>
+  );
 }
 
 export function ProgressBar({ pct, color = LQ.gold }: { pct: number; color?: string }) {

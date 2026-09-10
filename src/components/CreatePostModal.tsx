@@ -11,10 +11,12 @@ export function CreatePostModal({
   visible,
   onClose,
   onCreated,
+  clubId,
 }: {
   visible: boolean;
   onClose: () => void;
   onCreated: () => void;
+  clubId?: string;
 }) {
   const { session } = useCommunityAuth();
   const [photoUri, setPhotoUri] = useState<string | null>(null);
@@ -51,7 +53,7 @@ export function CreatePostModal({
     if (!photoUri || !session) return;
     setSubmitting(true);
     try {
-      await createPost(session.user.id, photoUri, caption);
+      await createPost(session.user.id, photoUri, caption, clubId);
       onCreated();
       close();
     } catch (err: any) {

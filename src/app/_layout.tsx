@@ -19,7 +19,7 @@ import { Text } from 'react-native';
 import { StatusBar } from 'expo-status-bar';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 
-import { ChecklistIcon, DumbbellIcon, HeartIcon, HomeIcon, ShieldIcon, UsersIcon, WalletIcon } from '@/components/TabIcon';
+import { ChecklistIcon, DumbbellIcon, HeartIcon, ShieldIcon, UsersIcon, WalletIcon } from '@/components/TabIcon';
 import { LQ } from '@/constants/life-quest-theme';
 import { CommunityAuthProvider } from '@/store/CommunityAuthContext';
 import { LifeQuestProvider } from '@/store/LifeQuestStore';
@@ -74,11 +74,11 @@ export default function RootLayout() {
           <Tabs.Screen
             name="index"
             options={{
-              title: 'Life Quest',
-              tabBarLabel: 'Início',
-              tabBarIcon: ({ color }) => <HomeIcon color={color as string} />,
+              title: 'Comunidade',
+              tabBarIcon: ({ color }) => <UsersIcon color={color as string} />,
             }}
           />
+          <Tabs.Screen name="dashboard" options={{ href: null }} />
           <Tabs.Screen
             name="rotina"
             options={{
@@ -100,13 +100,6 @@ export default function RootLayout() {
               title: 'Academia',
               tabBarLabel: 'Treino',
               tabBarIcon: ({ color }) => <DumbbellIcon color={color as string} />,
-            }}
-          />
-          <Tabs.Screen
-            name="comunidade"
-            options={{
-              title: 'Comunidade',
-              tabBarIcon: ({ color }) => <UsersIcon color={color as string} />,
             }}
           />
           <Tabs.Screen
