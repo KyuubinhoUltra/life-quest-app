@@ -59,6 +59,7 @@ export default function RootLayout() {
           screenOptions={{
             headerStyle: { backgroundColor: LQ.paper },
             headerTitleStyle: { color: LQ.ink, fontFamily: LQ.fontDisplay, textTransform: 'uppercase', letterSpacing: 0.5 },
+            headerTitleAlign: 'center',
             headerShadowVisible: false,
             tabBarStyle: {
               backgroundColor: LQ.paperRaised,
@@ -69,13 +70,12 @@ export default function RootLayout() {
             },
             tabBarActiveTintColor: LQ.gold,
             tabBarInactiveTintColor: LQ.inkFaint,
-            tabBarLabelStyle: { fontSize: 11, fontFamily: LQ.fontBodySemiBold },
+            tabBarShowLabel: false,
           }}>
           <Tabs.Screen
             name="index"
             options={{
               title: 'Life Quest',
-              tabBarLabel: 'Life Quest',
               tabBarIcon: ({ color }) => <HomeIcon color={color as string} />,
             }}
           />
