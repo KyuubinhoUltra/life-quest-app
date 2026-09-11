@@ -31,7 +31,7 @@ function MiniBars({ level }: { level: number }) {
   );
 }
 
-export default function MetasScreen() {
+export function FinanceiroTab() {
   const { state, today, addGoal, deleteGoal, depositToGoal, withdrawFromGoal, setGoalDeadline } = useLifeQuest();
 
   const [selectedId, setSelectedId] = useState<string | null>(null);

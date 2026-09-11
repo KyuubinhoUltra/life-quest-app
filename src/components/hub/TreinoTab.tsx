@@ -20,7 +20,7 @@ function CheckIcon({ checked }: { checked: boolean }) {
   );
 }
 
-export default function AcademiaScreen() {
+export function TreinoTab() {
   const {
     state,
     today,

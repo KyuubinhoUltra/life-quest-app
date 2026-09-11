@@ -80,6 +80,20 @@ export function HeartIcon({ size = 22, color = LQ.inkFaint }: Props) {
   );
 }
 
+export function PulseIcon({ size = 22, color = LQ.inkFaint }: Props) {
+  return (
+    <Svg width={size} height={size} viewBox="0 0 24 24" fill="none">
+      <Path
+        d="M2 12h4l2 7 4-14 2 7h4l2-3"
+        stroke={color}
+        strokeWidth={1.8}
+        strokeLinecap="round"
+        strokeLinejoin="round"
+      />
+    </Svg>
+  );
+}
+
 export function UsersIcon({ size = 22, color = LQ.inkFaint }: Props) {
   return (
     <Svg width={size} height={size} viewBox="0 0 24 24" fill="none">

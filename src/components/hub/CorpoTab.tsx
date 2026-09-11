@@ -22,7 +22,7 @@ function sleepHoursFromTimes(bed?: string, wake?: string): number | null {
   return Math.round((diff / 60) * 10) / 10;
 }
 
-export default function SaudeScreen() {
+export function CorpoTab() {
   const { state, today, waterTargetMl } = useLifeQuest();
 
   const [waterModalOpen, setWaterModalOpen] = useState(false);
