@@ -94,6 +94,14 @@ export function PulseIcon({ size = 22, color = LQ.inkFaint }: Props) {
   );
 }
 
+export function ChevronLeftIcon({ size = 22, color = LQ.inkFaint }: Props) {
+  return (
+    <Svg width={size} height={size} viewBox="0 0 24 24" fill="none">
+      <Path d="M15 5l-7 7 7 7" stroke={color} strokeWidth={1.8} strokeLinecap="round" strokeLinejoin="round" />
+    </Svg>
+  );
+}
+
 export function UsersIcon({ size = 22, color = LQ.inkFaint }: Props) {
   return (
     <Svg width={size} height={size} viewBox="0 0 24 24" fill="none">

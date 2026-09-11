@@ -1,3 +1,4 @@
+import { useRouter } from 'expo-router';
 import React, { useCallback, useEffect, useState } from 'react';
 import { Pressable, StyleSheet, Text, View } from 'react-native';
 
@@ -5,6 +6,7 @@ import { AuthModal } from '@/components/AuthModal';
 import { ClubDetailModal } from '@/components/community/ClubDetailModal';
 import { CreateClubModal } from '@/components/community/CreateClubModal';
 import { PostFeedList } from '@/components/community/PostFeedList';
+import { LoginPrompt } from '@/components/community/LoginPrompt';
 import { CreatePostModal } from '@/components/CreatePostModal';
 import { Card, PillButton, SubText } from '@/components/ui';
 import { LQ } from '@/constants/life-quest-theme';
@@ -33,18 +35,11 @@ const TABS: { key: TabKey; label: string }[] = [
   { key: 'amigos', label: 'Amigos' },
 ];
 
-function LoginPrompt({ onLogin }: { onLogin: () => void }) {
-  return (
-    <View style={{ padding: 20, alignItems: 'center' }}>
-      <SubText style={{ textAlign: 'center', marginBottom: 12 }}>Entre na sua conta pra ver isso.</SubText>
-      <PillButton label="Entrar / Criar conta" onPress={onLogin} />
-    </View>
-  );
-}
-
 export default function ComunidadeScreen() {
+  const router = useRouter();
   const { session } = useCommunityAuth();
   const userId = session?.user.id;
+  const goToProfile = (id: string) => router.push({ pathname: '/perfil/[id]', params: { id } });
 
   const [tab, setTab] = useState<TabKey>('feed');
   const [authOpen, setAuthOpen] = useState(false);
@@ -214,6 +209,7 @@ export default function ComunidadeScreen() {
           onDelete={(p) => handleDelete(p, setFeedPosts)}
           followingIds={followingIds}
           onToggleFollow={handleToggleFollow}
+          onPressUser={goToProfile}
           emptyText="Nenhum post ainda. Seja o primeiro a compartilhar um treino!"
           ListHeaderComponent={
             <PillButton label="+ Novo post" onPress={handleNewPost} style={{ width: '100%', marginBottom: 16 }} />
@@ -255,6 +251,7 @@ export default function ComunidadeScreen() {
             onRefresh={onRefresh}
             onLike={(p) => handleLike(p, setFollowingPosts)}
             onDelete={(p) => handleDelete(p, setFollowingPosts)}
+            onPressUser={goToProfile}
             emptyText="Você ainda não segue ninguém, ou quem você segue não postou nada. Siga alguém no Feed!"
           />
         ) : (
@@ -270,10 +267,12 @@ export default function ComunidadeScreen() {
               </SubText>
             ) : (
               friends.map((f) => (
-                <Card key={f.id} style={styles.friendCard}>
-                  <Text style={styles.clubIcon}>{f.avatar}</Text>
-                  <Text style={styles.clubName}>{f.username}</Text>
-                </Card>
+                <Pressable key={f.id} onPress={() => goToProfile(f.id)}>
+                  <Card style={styles.friendCard}>
+                    <Text style={styles.clubIcon}>{f.avatar}</Text>
+                    <Text style={styles.clubName}>{f.username}</Text>
+                  </Card>
+                </Pressable>
               ))
             )}
           </View>

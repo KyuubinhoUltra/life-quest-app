@@ -46,6 +46,17 @@ export async function fetchClubPosts(clubId: string): Promise<CommunityPost[]> {
   return (data as unknown as CommunityPost[]) ?? [];
 }
 
+export async function fetchPostsByUser(userId: string): Promise<CommunityPost[]> {
+  const { data, error } = await supabase
+    .from('posts')
+    .select(POST_SELECT)
+    .eq('user_id', userId)
+    .order('created_at', { ascending: false })
+    .limit(50);
+  if (error) throw error;
+  return (data as unknown as CommunityPost[]) ?? [];
+}
+
 export async function fetchFollowingFeed(userId: string): Promise<CommunityPost[]> {
   const followingIds = await fetchFollowingIds(userId);
   if (followingIds.length === 0) return [];
@@ -180,4 +191,15 @@ export async function fetchProfilesByIds(ids: string[]): Promise<Profile[]> {
   const { data, error } = await supabase.from('profiles').select('id, username, avatar').in('id', ids);
   if (error) throw error;
   return (data as Profile[]) ?? [];
+}
+
+export async function fetchProfileById(id: string): Promise<Profile | null> {
+  const { data, error } = await supabase.from('profiles').select('id, username, avatar').eq('id', id).maybeSingle();
+  if (error) throw error;
+  return (data as Profile) ?? null;
+}
+
+export async function updateProfile(userId: string, fields: { username?: string; avatar?: string }): Promise<void> {
+  const { error } = await supabase.from('profiles').update(fields).eq('id', userId);
+  if (error) throw error;
 }

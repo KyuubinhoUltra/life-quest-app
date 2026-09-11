@@ -1,3 +1,4 @@
+import { useRouter } from 'expo-router';
 import React, { useCallback, useEffect, useState } from 'react';
 import { Alert, Modal, Pressable, StyleSheet, Text, View } from 'react-native';
 
@@ -28,6 +29,7 @@ export function ClubDetailModal({
   onClose: () => void;
   onMembershipChanged: () => void;
 }) {
+  const router = useRouter();
   const { session } = useCommunityAuth();
   const [posts, setPosts] = useState<CommunityPost[]>([]);
   const [memberCount, setMemberCount] = useState(0);
@@ -143,6 +145,10 @@ export function ClubDetailModal({
               onRefresh={onRefresh}
               onLike={handleLike}
               onDelete={handleDelete}
+              onPressUser={(id) => {
+                onClose();
+                router.push({ pathname: '/perfil/[id]', params: { id } });
+              }}
               emptyText={isMember ? 'Nenhum post neste clube ainda.' : 'Entre no clube pra ver os posts.'}
             />
           </View>

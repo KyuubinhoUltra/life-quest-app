@@ -81,6 +81,10 @@ export default function RootLayout() {
           />
           <Tabs.Screen name="dashboard" options={{ href: null }} />
           <Tabs.Screen
+            name="perfil/[id]"
+            options={{ href: null, headerShown: false, tabBarStyle: { display: 'none' } }}
+          />
+          <Tabs.Screen
             name="rotina"
             options={{
               title: 'Missões Diárias',
@@ -98,8 +102,7 @@ export default function RootLayout() {
           <Tabs.Screen
             name="personagem"
             options={{
-              title: 'Personagem',
-              tabBarLabel: 'Perfil',
+              title: 'Perfil',
               tabBarIcon: ({ color }) => <ShieldIcon color={color as string} />,
             }}
           />

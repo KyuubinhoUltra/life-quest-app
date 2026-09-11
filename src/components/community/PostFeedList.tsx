@@ -17,6 +17,7 @@ export function PostFeedList({
   ListHeaderComponent,
   followingIds,
   onToggleFollow,
+  onPressUser,
 }: {
   posts: CommunityPost[];
   currentUserId?: string;
@@ -28,6 +29,7 @@ export function PostFeedList({
   ListHeaderComponent?: React.ReactElement;
   followingIds?: Set<string>;
   onToggleFollow?: (post: CommunityPost) => void;
+  onPressUser?: (userId: string) => void;
 }) {
   return (
     <FlatList
@@ -43,22 +45,37 @@ export function PostFeedList({
         const following = !!followingIds && followingIds.has(item.user_id);
         return (
           <Card style={styles.postCard}>
-            <View style={styles.postHeader}>
+            <Pressable
+              style={styles.postHeader}
+              disabled={!onPressUser}
+              onPress={() => onPressUser?.(item.user_id)}>
               <Text style={styles.avatar}>{item.profiles?.avatar ?? '💪'}</Text>
               <Text style={styles.username}>{item.profiles?.username ?? 'Usuário'}</Text>
               {!isMine && onToggleFollow && !!currentUserId && (
-                <Pressable onPress={() => onToggleFollow(item)} style={styles.followBtn} hitSlop={6}>
+                <Pressable
+                  onPress={(e) => {
+                    e.stopPropagation();
+                    onToggleFollow(item);
+                  }}
+                  style={styles.followBtn}
+                  hitSlop={6}>
                   <Text style={[styles.followBtnText, following && styles.followBtnTextActive]}>
                     {following ? 'Seguindo' : 'Seguir'}
                   </Text>
                 </Pressable>
               )}
               {isMine && (
-                <Pressable onPress={() => onDelete(item)} hitSlop={8} style={{ marginLeft: 'auto' }}>
+                <Pressable
+                  onPress={(e) => {
+                    e.stopPropagation();
+                    onDelete(item);
+                  }}
+                  hitSlop={8}
+                  style={{ marginLeft: 'auto' }}>
                   <Text style={{ color: LQ.inkFaint, fontSize: 16 }}>✕</Text>
                 </Pressable>
               )}
-            </View>
+            </Pressable>
             <Image source={{ uri: item.photo_url }} style={styles.photo} />
             {!!item.caption && <Text style={styles.caption}>{item.caption}</Text>}
             <Pressable onPress={() => onLike(item)} style={styles.likeRow} hitSlop={8}>
