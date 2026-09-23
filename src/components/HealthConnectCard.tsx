@@ -138,7 +138,11 @@ export function HealthConnectCard() {
           <View style={styles.body}>
             <View style={styles.metrics}>
               <MetricRow icon={<StepsIcon />} value={metrics?.steps ?? '—'} unit="passos" />
-              <MetricRow icon={<ClockIcon />} value={metrics?.exerciseMinutes ?? '—'} unit="min" />
+              <MetricRow
+                icon={<ClockIcon />}
+                value={metrics ? `${metrics.exerciseEstimated ? '~' : ''}${metrics.exerciseMinutes}` : '—'}
+                unit="min"
+              />
               <MetricRow icon={<FlameIcon size={18} lit gradId="hcCardFlame" />} value={metrics?.calories ?? '—'} unit="kcal" />
             </View>
             <View style={styles.decoration} pointerEvents="none">
