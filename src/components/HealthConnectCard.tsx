@@ -8,6 +8,7 @@ import { LQ } from '@/constants/life-quest-theme';
 import {
   fetchHealthDiagnostics,
   fetchTodayHealthMetrics,
+  hasCaloriePermissions,
   hasHealthPermissions,
   HealthMetrics,
   isHealthConnectSupported,
@@ -53,6 +54,7 @@ export function HealthConnectCard() {
   const [status, setStatus] = useState<HealthStatus>('checking');
   const [metrics, setMetrics] = useState<HealthMetrics | null>(null);
   const [syncing, setSyncing] = useState(false);
+  const [caloriesOk, setCaloriesOk] = useState(true);
   const statusRef = useRef(status);
   statusRef.current = status;
 
@@ -63,6 +65,7 @@ export function HealthConnectCard() {
     }
     if (await hasHealthPermissions()) {
       setStatus('ready');
+      setCaloriesOk(await hasCaloriePermissions());
       setMetrics(await fetchTodayHealthMetrics());
     } else {
       setStatus('need-permission');
@@ -105,6 +108,26 @@ export function HealthConnectCard() {
   const sync = async () => {
     setSyncing(true);
     setMetrics(await fetchTodayHealthMetrics());
+    setSyncing(false);
+  };
+
+  const enableCalories = async () => {
+    setSyncing(true);
+    await requestHealthPermissions();
+    const ok = await hasCaloriePermissions();
+    setCaloriesOk(ok);
+    if (ok) {
+      setMetrics(await fetchTodayHealthMetrics());
+    } else {
+      Alert.alert(
+        'Calorias não liberadas',
+        'Instale o build mais recente do app (as permissões de calorias são novas) e libere "Calorias totais" e "Taxa metabólica basal" no Health Connect.',
+        [
+          { text: 'Agora não', style: 'cancel' },
+          { text: 'Abrir Health Connect', onPress: openHealthConnectSettings },
+        ]
+      );
+    }
     setSyncing(false);
   };
 
@@ -160,6 +183,11 @@ export function HealthConnectCard() {
               <Text style={styles.link}>Diagnóstico</Text>
             </Pressable>
           </View>
+          {!caloriesOk && (
+            <Pressable onPress={enableCalories} hitSlop={8} style={{ marginTop: 12, alignSelf: 'center' }}>
+              <Text style={styles.link}>Liberar cálculo de calorias</Text>
+            </Pressable>
+          )}
         </>
       )}
     </Card>

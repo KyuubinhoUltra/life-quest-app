@@ -7,7 +7,11 @@ export type HealthMetrics = {
   exerciseEstimated: boolean;
 };
 
-const RECORD_TYPES = ['Steps', 'ActiveCaloriesBurned', 'TotalCaloriesBurned', 'BasalMetabolicRate', 'ExerciseSession'] as const;
+const CORE_TYPES = ['Steps', 'ActiveCaloriesBurned', 'ExerciseSession'] as const;
+// Só pra calcular calorias ativas (total − basal). Opcionais: builds antigos não
+// declaram essas permissões no manifest, e o card não pode travar por causa delas.
+const CALORIE_TYPES = ['TotalCaloriesBurned', 'BasalMetabolicRate'] as const;
+const RECORD_TYPES = [...CORE_TYPES, ...CALORIE_TYPES] as const;
 
 // Filtra a agregação pra vir só do Samsung Health, em vez de somar todas as
 // fontes que escrevem no Health Connect — evita contagem duplicada quando
@@ -70,16 +74,25 @@ export async function isHealthConnectSupported(): Promise<boolean> {
   }
 }
 
-export async function hasHealthPermissions(): Promise<boolean> {
+async function grantedRecordTypes(): Promise<Set<string> | null> {
   const hc = loadModule();
-  if (!hc) return false;
+  if (!hc) return null;
   try {
     const granted = await hc.getGrantedPermissions();
-    const grantedTypes = new Set(granted.map((p) => p.recordType));
-    return RECORD_TYPES.every((t) => grantedTypes.has(t));
+    return new Set(granted.map((p) => p.recordType));
   } catch {
-    return false;
+    return null;
   }
+}
+
+export async function hasHealthPermissions(): Promise<boolean> {
+  const granted = await grantedRecordTypes();
+  return !!granted && CORE_TYPES.every((t) => granted.has(t));
+}
+
+export async function hasCaloriePermissions(): Promise<boolean> {
+  const granted = await grantedRecordTypes();
+  return !!granted && CALORIE_TYPES.every((t) => granted.has(t));
 }
 
 export type PermissionResult =
@@ -93,8 +106,8 @@ export async function requestHealthPermissions(): Promise<PermissionResult> {
     await hc.initialize();
     const granted = await hc.requestPermission(RECORD_TYPES.map((recordType) => ({ accessType: 'read', recordType })));
     const grantedTypes = new Set(granted.map((p) => p.recordType));
-    const allGranted = RECORD_TYPES.every((t) => grantedTypes.has(t));
-    return allGranted ? { granted: true } : { granted: false, reason: 'denied' };
+    const coreGranted = CORE_TYPES.every((t) => grantedTypes.has(t));
+    return coreGranted ? { granted: true } : { granted: false, reason: 'denied' };
   } catch (err: any) {
     return { granted: false, reason: 'error', error: err?.message ?? String(err) };
   }
