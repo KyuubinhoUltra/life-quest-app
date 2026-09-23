@@ -98,6 +98,51 @@ export async function fetchTodayHealthMetrics(): Promise<HealthMetrics | null> {
   }
 }
 
+// Mostra o que o Health Connect tem de hoje por app de origem, sem o filtro do
+// Samsung Health, pra descobrir por que uma métrica aparece zerada.
+export async function fetchHealthDiagnostics(): Promise<string> {
+  const hc = loadModule();
+  if (!hc) return 'Health Connect indisponível neste aparelho.';
+  const timeRangeFilter = todayRange();
+  const lines: string[] = [];
+
+  for (const recordType of RECORD_TYPES) {
+    try {
+      const { records } = await hc.readRecords(recordType, { timeRangeFilter, pageSize: 5000 });
+      const byOrigin = new Map<string, { count: number; total: number }>();
+      for (const r of records as any[]) {
+        const origin = r.metadata?.dataOrigin ?? 'origem desconhecida';
+        const entry = byOrigin.get(origin) ?? { count: 0, total: 0 };
+        entry.count += 1;
+        if (recordType === 'Steps') entry.total += r.count ?? 0;
+        else if (recordType === 'ActiveCaloriesBurned') entry.total += r.energy?.inKilocalories ?? 0;
+        else entry.total += (new Date(r.endTime).getTime() - new Date(r.startTime).getTime()) / 60000;
+        byOrigin.set(origin, entry);
+      }
+      const unit = recordType === 'Steps' ? 'passos' : recordType === 'ActiveCaloriesBurned' ? 'kcal' : 'min';
+      lines.push(`${recordType}: ${records.length} registro(s)`);
+      byOrigin.forEach((v, origin) => lines.push(`  • ${origin}: ${v.count}x, ${Math.round(v.total)} ${unit}`));
+    } catch (err: any) {
+      lines.push(`${recordType}: erro — ${err?.message ?? String(err)}`);
+    }
+  }
+
+  try {
+    const [cal, ex] = await Promise.all([
+      hc.aggregateRecord({ recordType: 'ActiveCaloriesBurned', timeRangeFilter }),
+      hc.aggregateRecord({ recordType: 'ExerciseSession', timeRangeFilter }),
+    ]);
+    lines.push(
+      `Agregado sem filtro: ${Math.round(cal.ACTIVE_CALORIES_TOTAL?.inKilocalories ?? 0)} kcal, ` +
+        `${Math.round((ex.EXERCISE_DURATION_TOTAL?.inSeconds ?? 0) / 60)} min`
+    );
+  } catch (err: any) {
+    lines.push(`Agregado sem filtro: erro — ${err?.message ?? String(err)}`);
+  }
+
+  return lines.join('\n');
+}
+
 export function openHealthConnectSettings() {
   const hc = loadModule();
   if (!hc) return;

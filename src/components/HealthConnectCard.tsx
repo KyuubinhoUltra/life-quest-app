@@ -6,6 +6,7 @@ import { FlameIcon } from '@/components/FlameIcon';
 import { Card, Eyebrow, PillButton, SubText } from '@/components/ui';
 import { LQ } from '@/constants/life-quest-theme';
 import {
+  fetchHealthDiagnostics,
   fetchTodayHealthMetrics,
   hasHealthPermissions,
   HealthMetrics,
@@ -107,6 +108,13 @@ export function HealthConnectCard() {
     setSyncing(false);
   };
 
+  const showDiagnostics = async () => {
+    setSyncing(true);
+    const report = await fetchHealthDiagnostics();
+    setSyncing(false);
+    Alert.alert('Diagnóstico do Health Connect', report);
+  };
+
   if (status === 'unsupported') return null;
 
   return (
@@ -143,6 +151,9 @@ export function HealthConnectCard() {
             </Pressable>
             <Pressable onPress={openHealthConnectSettings} hitSlop={8}>
               <Text style={styles.link}>Gerenciar permissões</Text>
+            </Pressable>
+            <Pressable onPress={showDiagnostics} hitSlop={8}>
+              <Text style={styles.link}>Diagnóstico</Text>
             </Pressable>
           </View>
         </>
