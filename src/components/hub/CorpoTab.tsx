@@ -2,7 +2,6 @@ import React, { useState } from 'react';
 import { ScrollView, StyleSheet, Text, View } from 'react-native';
 
 import { Gauge } from '@/components/Gauge';
-import { HealthConnectCard } from '@/components/HealthConnectCard';
 import { SleepEntryModal } from '@/components/SleepEntryModal';
 import { BigFigure, Card, Eyebrow, PillButton, SubText } from '@/components/ui';
 import { WaterEntryModal } from '@/components/WaterEntryModal';
@@ -38,8 +37,6 @@ export function CorpoTab() {
 
   return (
     <ScrollView style={styles.screen} contentContainerStyle={styles.content}>
-      <HealthConnectCard />
-
       <View style={styles.healthGrid}>
         <Card style={styles.healthCard}>
           <Eyebrow>Meta de água hoje</Eyebrow>
