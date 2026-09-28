@@ -28,6 +28,90 @@ export type BodyWeightEntry = { id: string; date: string; weight: number };
 
 export type CharacterClass = 'guerreiro' | 'ranger' | 'monge' | 'alquimista';
 
+// ---- Forja de Missões (treino gerado) ----
+export type TreinoMissaoExercicio = { nome: string; series: number; repeticoes: string; descanso: string };
+export type TreinoMissaoResultado = {
+  missao: string;
+  narrativa: string;
+  exercicios: TreinoMissaoExercicio[];
+  xp: number;
+  dica_progressao: string;
+};
+export type TreinoMissaoDia = {
+  label: string;
+  cat: string[];
+  tipo: string;
+  resultado: TreinoMissaoResultado | null;
+  error: string | null;
+};
+export type TreinoMissaoConfig = {
+  classe: 'guerreiro' | 'ranger' | 'monge' | null;
+  foco: string | null;
+  dias: number | null;
+  equipamento: string | null;
+  nivel: string | null;
+  gruposExcluidos: string[];
+};
+
+// ---- Cozinha do Alquimista (dieta gerada) ----
+export type DietaSexo = 'masculino' | 'feminino' | 'neutro';
+export type DietaAtividade = 'sedentario' | 'leve' | 'moderado' | 'ativo';
+export type DietaObjetivo = 'perder' | 'manter' | 'ganhar';
+export type DietaRestricao = 'vegetariano' | 'vegano' | 'sem_lactose' | 'sem_gluten';
+
+export type DietaPerfil = {
+  altura: number | null;
+  idade: number | null;
+  sexo: DietaSexo | null;
+  atividade: DietaAtividade | null;
+};
+export type DietaConfig = {
+  objetivo: DietaObjetivo | null;
+  restricoes: DietaRestricao[];
+  refeicoesPorDia: number | null;
+};
+export type DietaRefeicao = {
+  slot: string;
+  nome: string;
+  porcao: string;
+  calorias: number;
+  proteina: number;
+  carboidrato: number;
+  gordura: number;
+};
+export type DietaDiaResultado = {
+  titulo: string;
+  narrativa: string;
+  dica: string;
+  refeicoes: DietaRefeicao[];
+  caloriasTotais: number;
+  proteinaTotal: number;
+  carboTotal: number;
+  gorduraTotal: number;
+  metaCalorica: number;
+  xp: number;
+};
+export type DietaDiaSlot = { slot: string; tipoPool: string; pct: number };
+export type DietaDia = {
+  diaLabel: string;
+  slots: DietaDiaSlot[];
+  resultado: DietaDiaResultado | null;
+  error: string | null;
+};
+
+// Pensado pra futura câmera de calorias: entradas manuais (do cardápio gerado)
+// e, mais adiante, entradas fotografadas caem no mesmo formato aqui.
+export type NutritionLogEntry = {
+  slot: string;
+  nome: string;
+  calorias: number;
+  proteina: number;
+  carboidrato: number;
+  gordura: number;
+  registradoEm: string;
+  origem: 'plano' | 'camera';
+};
+
 export type LifeQuestState = {
   habits: Habit[];
   habitHistory: Record<string, string[]>;
@@ -51,6 +135,13 @@ export type LifeQuestState = {
   workoutTimer: { date: string | null; accumulatedSeconds: number; runningSince: number | null };
   workoutDurations: Record<string, number>;
   dailyMissionsClaimed: Record<string, string[]>;
+  treinoMissaoConfig: TreinoMissaoConfig;
+  treinoMissaoSemana: TreinoMissaoDia[];
+  dietaPerfil: DietaPerfil;
+  dietaConfig: DietaConfig;
+  dietaSemana: DietaDia[];
+  dietaUsadasNaSemana: string[];
+  nutritionLog: Record<string, NutritionLogEntry[]>;
 };
 
 export const WEEKDAYS = ['Seg', 'Ter', 'Qua', 'Qui', 'Sex', 'Sáb', 'Dom'] as const;

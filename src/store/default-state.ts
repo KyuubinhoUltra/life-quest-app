@@ -86,5 +86,12 @@ export function createDefaultState(): LifeQuestState {
     workoutTimer: { date: null, accumulatedSeconds: 0, runningSince: null },
     workoutDurations: {},
     dailyMissionsClaimed: {},
+    treinoMissaoConfig: { classe: null, foco: null, dias: null, equipamento: null, nivel: null, gruposExcluidos: [] },
+    treinoMissaoSemana: [],
+    dietaPerfil: { altura: null, idade: null, sexo: null, atividade: null },
+    dietaConfig: { objetivo: null, restricoes: [], refeicoesPorDia: null },
+    dietaSemana: [],
+    dietaUsadasNaSemana: [],
+    nutritionLog: {},
   };
 }

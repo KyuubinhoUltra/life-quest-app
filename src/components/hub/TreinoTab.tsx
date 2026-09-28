@@ -3,6 +3,7 @@ import { Pressable, ScrollView, StyleSheet, Text, TextInput, View } from 'react-
 import Svg, { Path } from 'react-native-svg';
 
 import { ExercisePickerModal } from '@/components/ExercisePickerModal';
+import { ForjaMissoesModal } from '@/components/treino/ForjaMissoesModal';
 import { BigFigure, Card, Eyebrow, PillButton, SectionTitle, SubText, XpBadge } from '@/components/ui';
 import { WeightChart } from '@/components/WeightChart';
 import { LQ } from '@/constants/life-quest-theme';
@@ -39,6 +40,7 @@ export function TreinoTab() {
 
   const [activeWeekday, setActiveWeekday] = useState<string>(currentWeekdayKey);
   const [pickerOpen, setPickerOpen] = useState(false);
+  const [forjaOpen, setForjaOpen] = useState(false);
   const [weightInput, setWeightInput] = useState('');
   const [, forceTick] = useState(0);
 
@@ -69,6 +71,8 @@ export function TreinoTab() {
 
   return (
     <ScrollView style={styles.screen} contentContainerStyle={styles.content}>
+      <PillButton label="⚔️ Forja de Missões" onPress={() => setForjaOpen(true)} style={{ width: '100%' }} />
+
       <SectionTitle>Plano semanal</SectionTitle>
       <View style={styles.weekdayRow}>
         {WEEKDAYS.map((wd) => (
@@ -207,6 +211,7 @@ export function TreinoTab() {
         onClose={() => setPickerOpen(false)}
         onAdd={(ex: LibraryExercise) => addExercise(activeWeekday, ex.name, ex.target, 0, ex.cat)}
       />
+      <ForjaMissoesModal visible={forjaOpen} onClose={() => setForjaOpen(false)} />
     </ScrollView>
   );
 }

@@ -1,10 +1,21 @@
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import React, { createContext, useCallback, useContext, useEffect, useMemo, useRef, useState } from 'react';
 
+import { gerarCardapio } from '@/engines/dieta-engine';
+import { gerarMissao } from '@/engines/treino-engine';
+
 import { createDefaultState } from './default-state';
 import { MissionDef } from './daily-missions';
 import { currentWeekday, dateKeyOffset, todayStr } from './dates';
-import { LifeQuestState } from './types';
+import {
+  DietaConfig,
+  DietaDia,
+  DietaPerfil,
+  LifeQuestState,
+  NutritionLogEntry,
+  TreinoMissaoConfig,
+  TreinoMissaoDia,
+} from './types';
 
 const STORE_KEY = 'lifequest_state_v1';
 
@@ -66,6 +77,18 @@ type Ctx = {
   avgSleepLast7d: () => number | null;
   isMissionDone: (mission: MissionDef) => boolean;
   claimDailyMission: (mission: MissionDef) => void;
+
+  // Forja de Missões (treino gerado)
+  setTreinoMissaoConfig: (patch: Partial<TreinoMissaoConfig>) => void;
+  setTreinoMissaoSemana: (dias: TreinoMissaoDia[]) => void;
+  gerarMissaoDoDiaTreino: (idx: number) => void;
+
+  // Cozinha do Alquimista (dieta gerada)
+  setDietaPerfil: (patch: Partial<DietaPerfil>) => void;
+  setDietaConfig: (patch: Partial<DietaConfig>) => void;
+  setDietaSemana: (dias: DietaDia[]) => void;
+  gerarCardapioDoDia: (idx: number) => void;
+  registrarRefeicaoComida: (entry: Omit<NutritionLogEntry, 'registradoEm' | 'origem'>) => void;
 };
 
 const LifeQuestContext = createContext<Ctx | null>(null);
@@ -565,6 +588,101 @@ export function LifeQuestProvider({ children }: { children: React.ReactNode }) {
     [gainAttrXp, today]
   );
 
+  const setTreinoMissaoConfig = useCallback((patch: Partial<TreinoMissaoConfig>) => {
+    setState((prev) => ({ ...prev, treinoMissaoConfig: { ...prev.treinoMissaoConfig, ...patch } }));
+  }, []);
+
+  const setTreinoMissaoSemana = useCallback((dias: TreinoMissaoDia[]) => {
+    setState((prev) => ({ ...prev, treinoMissaoSemana: dias }));
+  }, []);
+
+  const gerarMissaoDoDiaTreino = useCallback(
+    (idx: number) => {
+      setState((prev) => {
+        const dia = prev.treinoMissaoSemana[idx];
+        const classe = prev.treinoMissaoConfig.classe;
+        if (!dia || !classe) return prev;
+        const resposta = gerarMissao({ dia, classeKey: classe, config: prev.treinoMissaoConfig });
+        const next: LifeQuestState = JSON.parse(JSON.stringify(prev));
+        if (resposta.ok) {
+          next.treinoMissaoSemana[idx] = { ...next.treinoMissaoSemana[idx], error: null, resultado: resposta.dados };
+          gainAttrXp(next, 'forca', resposta.dados.xp);
+        } else {
+          next.treinoMissaoSemana[idx] = { ...next.treinoMissaoSemana[idx], error: resposta.erro };
+        }
+        return next;
+      });
+    },
+    [gainAttrXp]
+  );
+
+  const setDietaPerfil = useCallback((patch: Partial<DietaPerfil>) => {
+    setState((prev) => ({ ...prev, dietaPerfil: { ...prev.dietaPerfil, ...patch } }));
+  }, []);
+
+  const setDietaConfig = useCallback((patch: Partial<DietaConfig>) => {
+    setState((prev) => ({ ...prev, dietaConfig: { ...prev.dietaConfig, ...patch } }));
+  }, []);
+
+  const setDietaSemana = useCallback((dias: DietaDia[]) => {
+    setState((prev) => ({ ...prev, dietaSemana: dias, dietaUsadasNaSemana: [] }));
+  }, []);
+
+  const gerarCardapioDoDia = useCallback(
+    (idx: number) => {
+      setState((prev) => {
+        const dia = prev.dietaSemana[idx];
+        if (!dia) return prev;
+        const peso = prev.bodyWeightLog.length
+          ? [...prev.bodyWeightLog].sort((a, b) => a.date.localeCompare(b.date)).slice(-1)[0].weight
+          : null;
+        const { altura, idade, sexo, atividade } = prev.dietaPerfil;
+        const { objetivo, restricoes } = prev.dietaConfig;
+        if (!peso || !altura || !idade || !sexo || !atividade || !objetivo) return prev;
+
+        // Se esse dia já tinha um resultado (reroll), tira as receitas antigas dele
+        // do rastreamento antes de gerar de novo, senão ele nunca poderia repetir
+        // nem a própria escolha anterior.
+        const baseSemana = new Set(prev.dietaUsadasNaSemana);
+        dia.resultado?.refeicoes.forEach((r) => baseSemana.delete(r.nome));
+
+        const resposta = gerarCardapio({
+          dia,
+          config: {
+            perfil: { peso, altura, idade, sexo, atividade },
+            objetivo,
+            restricoesAlimentares: restricoes,
+          },
+          usadasNaSemana: baseSemana,
+        });
+
+        const next: LifeQuestState = JSON.parse(JSON.stringify(prev));
+        if (resposta.ok) {
+          next.dietaSemana[idx] = { ...next.dietaSemana[idx], error: null, resultado: resposta.dados };
+          next.dietaUsadasNaSemana = [...baseSemana, ...resposta.dados.refeicoes.map((r) => r.nome)];
+          gainAttrXp(next, 'vitalidade', resposta.dados.xp);
+        } else {
+          next.dietaSemana[idx] = { ...next.dietaSemana[idx], error: resposta.erro };
+        }
+        return next;
+      });
+    },
+    [gainAttrXp]
+  );
+
+  const registrarRefeicaoComida = useCallback(
+    (entry: Omit<NutritionLogEntry, 'registradoEm' | 'origem'>) => {
+      setState((prev) => {
+        const next: LifeQuestState = JSON.parse(JSON.stringify(prev));
+        const log = next.nutritionLog[today] || [];
+        log.push({ ...entry, registradoEm: new Date().toISOString(), origem: 'plano' });
+        next.nutritionLog[today] = log;
+        return next;
+      });
+    },
+    [today]
+  );
+
   // atualiza o recorde de ofensiva sempre que o estado relevante muda
   useEffect(() => {
     if (!ready) return;
@@ -617,6 +735,14 @@ export function LifeQuestProvider({ children }: { children: React.ReactNode }) {
       avgSleepLast7d,
       isMissionDone,
       claimDailyMission,
+      setTreinoMissaoConfig,
+      setTreinoMissaoSemana,
+      gerarMissaoDoDiaTreino,
+      setDietaPerfil,
+      setDietaConfig,
+      setDietaSemana,
+      gerarCardapioDoDia,
+      registrarRefeicaoComida,
     }),
     [
       state,
@@ -659,6 +785,14 @@ export function LifeQuestProvider({ children }: { children: React.ReactNode }) {
       avgSleepLast7d,
       isMissionDone,
       claimDailyMission,
+      setTreinoMissaoConfig,
+      setTreinoMissaoSemana,
+      gerarMissaoDoDiaTreino,
+      setDietaPerfil,
+      setDietaConfig,
+      setDietaSemana,
+      gerarCardapioDoDia,
+      registrarRefeicaoComida,
     ]
   );
 
