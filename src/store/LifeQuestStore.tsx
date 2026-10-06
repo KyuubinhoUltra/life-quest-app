@@ -67,6 +67,7 @@ type Ctx = {
   setGoalDeadline: (id: string, deadline: string) => void;
   setProfileName: (name: string) => void;
   setProfileAvatar: (avatar: string) => void;
+  setBonecoSexo: (sexo: 'homem' | 'mulher') => void;
   setCharacterClass: (
     classe: LifeQuestState['character']['classe'],
     afinidade: LifeQuestState['character']['afinidade']
@@ -493,6 +494,10 @@ export function LifeQuestProvider({ children }: { children: React.ReactNode }) {
     setState((prev) => ({ ...prev, profile: { ...prev.profile, avatar } }));
   }, []);
 
+  const setBonecoSexo = useCallback((bonecoSexo: 'homem' | 'mulher') => {
+    setState((prev) => ({ ...prev, profile: { ...prev.profile, bonecoSexo } }));
+  }, []);
+
   const setCharacterClass = useCallback(
     (classe: LifeQuestState['character']['classe'], afinidade: LifeQuestState['character']['afinidade']) => {
       setState((prev) => ({ ...prev, character: { ...prev.character, classe, afinidade } }));
@@ -728,6 +733,7 @@ export function LifeQuestProvider({ children }: { children: React.ReactNode }) {
       setGoalDeadline,
       setProfileName,
       setProfileAvatar,
+      setBonecoSexo,
       setCharacterClass,
       respecCharacter,
       resetAllData,
@@ -778,6 +784,7 @@ export function LifeQuestProvider({ children }: { children: React.ReactNode }) {
       setGoalDeadline,
       setProfileName,
       setProfileAvatar,
+      setBonecoSexo,
       setCharacterClass,
       respecCharacter,
       resetAllData,

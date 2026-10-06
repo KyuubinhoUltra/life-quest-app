@@ -4,6 +4,7 @@ import Svg, { Path } from 'react-native-svg';
 
 import { ExercisePickerModal } from '@/components/ExercisePickerModal';
 import { ForjaMissoesModal } from '@/components/treino/ForjaMissoesModal';
+import { ShareWorkoutModal } from '@/components/treino/ShareWorkoutModal';
 import { BigFigure, Card, Eyebrow, PillButton, SectionTitle, SubText, XpBadge } from '@/components/ui';
 import { WeightChart } from '@/components/WeightChart';
 import { LQ } from '@/constants/life-quest-theme';
@@ -41,6 +42,7 @@ export function TreinoTab() {
   const [activeWeekday, setActiveWeekday] = useState<string>(currentWeekdayKey);
   const [pickerOpen, setPickerOpen] = useState(false);
   const [forjaOpen, setForjaOpen] = useState(false);
+  const [shareOpen, setShareOpen] = useState(false);
   const [weightInput, setWeightInput] = useState('');
   const [, forceTick] = useState(0);
 
@@ -145,6 +147,7 @@ export function TreinoTab() {
         </View>
         {totalTrained > 0 && <SubText style={styles.totalTrained}>Total acumulado: {fmtDuration(totalTrained)}</SubText>}
       </Card>
+      <PillButton label="📸 Compartilhar treino de hoje" variant="ghost" onPress={() => setShareOpen(true)} style={{ width: '100%' }} />
 
       <SectionTitle>Peso corporal — registro semanal</SectionTitle>
       {lastWeight && (
@@ -212,6 +215,7 @@ export function TreinoTab() {
         onAdd={(ex: LibraryExercise) => addExercise(activeWeekday, ex.name, ex.target, 0, ex.cat)}
       />
       <ForjaMissoesModal visible={forjaOpen} onClose={() => setForjaOpen(false)} />
+      <ShareWorkoutModal visible={shareOpen} onClose={() => setShareOpen(false)} />
     </ScrollView>
   );
 }

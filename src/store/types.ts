@@ -122,7 +122,7 @@ export type LifeQuestState = {
   bodyWeightLog: BodyWeightEntry[];
   goals: Goal[];
   financeActivity: FinanceActivity[];
-  profile: { name: string; avatar: string; createdAt: string };
+  profile: { name: string; avatar: string; createdAt: string; bonecoSexo?: 'homem' | 'mulher' };
   stats: { bestStreak: number };
   character: {
     classe: CharacterClass | null;
