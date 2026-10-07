@@ -2,7 +2,7 @@ import React, { useEffect, useState } from 'react';
 import { Modal, Pressable, ScrollView, StyleSheet, Text, View } from 'react-native';
 
 import { BodyDiagram } from '@/components/treino/BodyDiagram';
-import { PillButton, SubText, XpBadge } from '@/components/ui';
+import { PillButton, SubText } from '@/components/ui';
 import { LQ } from '@/constants/life-quest-theme';
 import {
   EQUIPAMENTOS,
@@ -19,15 +19,18 @@ import { TreinoMissaoDia } from '@/store/types';
 type ClasseTreino = 'guerreiro' | 'ranger' | 'monge';
 const CLASSES_TREINO: ClasseTreino[] = ['guerreiro', 'ranger', 'monge'];
 
-type Step = 'classe' | 'foco' | 'dias' | 'equipamento' | 'nivel' | 'grupos' | 'semana';
+type Step = 'classe' | 'foco' | 'dias' | 'equipamento' | 'nivel' | 'grupos' | 'confirmar' | 'semana';
+type SplitDia = { label: string; cat: string[]; tipo: string };
 
 function MissaoCard({ dia, idx, onGerar }: { dia: TreinoMissaoDia; idx: number; onGerar: (idx: number) => void }) {
   const corBorda = { forca: LQ.gold, cardio: LQ.goldInk, mobilidade: LQ.line }[dia.tipo] ?? LQ.gold;
   return (
     <View style={[styles.missaoCard, { borderLeftColor: corBorda }]}>
       <View style={styles.missaoHeader}>
-        <Text style={styles.missaoLabel}>{dia.label}</Text>
-        {dia.resultado && <XpBadge amount={dia.resultado.xp} />}
+        <Text style={styles.missaoLabel}>
+          {dia.weekday ? `${dia.weekday} · ` : ''}
+          {dia.label}
+        </Text>
       </View>
 
       {!dia.resultado && !dia.error && (
@@ -69,11 +72,14 @@ function MissaoCard({ dia, idx, onGerar }: { dia: TreinoMissaoDia; idx: number; 
   );
 }
 
-export function ForjaMissoesModal({ visible, onClose }: { visible: boolean; onClose: () => void }) {
-  const { state, setTreinoMissaoConfig, setTreinoMissaoSemana, gerarMissaoDoDiaTreino } = useLifeQuest();
+export function ForjaTreinoModal({ visible, onClose }: { visible: boolean; onClose: () => void }) {
+  const { state, setTreinoMissaoConfig, aplicarSemanaTreino, gerarMissaoDoDiaTreino } = useLifeQuest();
   const [step, setStep] = useState<Step>('classe');
   const [tempFoco, setTempFoco] = useState<string | null>(null);
   const [tempGrupos, setTempGrupos] = useState<string[]>([]);
+  const [splitPendente, setSplitPendente] = useState<SplitDia[]>([]);
+
+  const planoTemExercicios = Object.values(state.workoutPlan).some((p) => p.exercises.length > 0);
 
   const classePersonagem = state.character.classe;
   const classeFixa = CLASSES_TREINO.includes(classePersonagem as ClasseTreino) ? (classePersonagem as ClasseTreino) : null;
@@ -142,12 +148,20 @@ export function ForjaMissoesModal({ visible, onClose }: { visible: boolean; onCl
       setStep('grupos');
       return;
     }
-    setTreinoMissaoSemana(split.map((d) => ({ ...d, resultado: null, error: null })));
+    if (planoTemExercicios) {
+      setSplitPendente(split);
+      setStep('confirmar');
+      return;
+    }
+    aplicar(split);
+  }
+
+  function aplicar(split: SplitDia[]) {
+    aplicarSemanaTreino(split);
     setStep('semana');
   }
 
   function refazer() {
-    setTreinoMissaoSemana([]);
     if (classeFixa) {
       setTreinoMissaoConfig({ classe: classeFixa, foco: null, gruposExcluidos: [] });
       setStep(classeFixa === 'guerreiro' ? 'foco' : 'dias');
@@ -161,7 +175,7 @@ export function ForjaMissoesModal({ visible, onClose }: { visible: boolean; onCl
       <View style={styles.overlay}>
         <View style={styles.panel}>
           <View style={styles.header}>
-            <Text style={styles.title}>⚔️ Forja de Missões</Text>
+            <Text style={styles.title}>⚔️ Forja de Treino</Text>
             <Pressable onPress={onClose} style={styles.closeBtn} hitSlop={8}>
               <Text style={styles.closeBtnText}>✕</Text>
             </Pressable>
@@ -236,10 +250,20 @@ export function ForjaMissoesModal({ visible, onClose }: { visible: boolean; onCl
               </View>
             )}
 
+            {step === 'confirmar' && (
+              <View style={{ gap: 10 }}>
+                <SubText>
+                  Seu treino gerado vai entrar no Plano semanal e substituir o plano atual (exercícios e cargas dos dias da semana).
+                </SubText>
+                <PillButton label="Substituir meu Plano semanal" onPress={() => aplicar(splitPendente)} />
+                <PillButton label="Cancelar" variant="ghost" onPress={onClose} />
+              </View>
+            )}
+
             {step === 'semana' && (
               <View style={{ gap: 12 }}>
                 <View style={styles.semanaHeader}>
-                  <SubText>Sua semana de missões</SubText>
+                  <SubText style={{ flex: 1 }}>Seu treino da semana — já está no Plano semanal.</SubText>
                   <Pressable onPress={refazer}>
                     <Text style={styles.linkText}>Refazer perguntas</Text>
                   </Pressable>

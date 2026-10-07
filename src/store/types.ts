@@ -28,7 +28,7 @@ export type BodyWeightEntry = { id: string; date: string; weight: number };
 
 export type CharacterClass = 'guerreiro' | 'ranger' | 'monge' | 'alquimista';
 
-// ---- Forja de Missões (treino gerado) ----
+// ---- Forja de Treino (treino gerado) ----
 export type TreinoMissaoExercicio = { nome: string; series: number; repeticoes: string; descanso: string };
 export type TreinoMissaoResultado = {
   missao: string;
@@ -41,6 +41,8 @@ export type TreinoMissaoDia = {
   label: string;
   cat: string[];
   tipo: string;
+  /** dia do Plano semanal onde esse treino foi colocado (ex.: 'Seg') */
+  weekday?: string;
   resultado: TreinoMissaoResultado | null;
   error: string | null;
 };

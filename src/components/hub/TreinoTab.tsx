@@ -3,7 +3,7 @@ import { Pressable, ScrollView, StyleSheet, Text, TextInput, View } from 'react-
 import Svg, { Path } from 'react-native-svg';
 
 import { ExercisePickerModal } from '@/components/ExercisePickerModal';
-import { ForjaMissoesModal } from '@/components/treino/ForjaMissoesModal';
+import { ForjaTreinoModal } from '@/components/treino/ForjaTreinoModal';
 import { ShareWorkoutModal } from '@/components/treino/ShareWorkoutModal';
 import { BigFigure, Card, Eyebrow, PillButton, SectionTitle, SubText, XpBadge } from '@/components/ui';
 import { WeightChart } from '@/components/WeightChart';
@@ -73,7 +73,7 @@ export function TreinoTab() {
 
   return (
     <ScrollView style={styles.screen} contentContainerStyle={styles.content}>
-      <PillButton label="⚔️ Forja de Missões" onPress={() => setForjaOpen(true)} style={{ width: '100%' }} />
+      <PillButton label="⚔️ Forja de Treino" onPress={() => setForjaOpen(true)} style={{ width: '100%' }} />
 
       <SectionTitle>Plano semanal</SectionTitle>
       <View style={styles.weekdayRow}>
@@ -214,7 +214,7 @@ export function TreinoTab() {
         onClose={() => setPickerOpen(false)}
         onAdd={(ex: LibraryExercise) => addExercise(activeWeekday, ex.name, ex.target, 0, ex.cat)}
       />
-      <ForjaMissoesModal visible={forjaOpen} onClose={() => setForjaOpen(false)} />
+      <ForjaTreinoModal visible={forjaOpen} onClose={() => setForjaOpen(false)} />
       <ShareWorkoutModal visible={shareOpen} onClose={() => setShareOpen(false)} />
     </ScrollView>
   );

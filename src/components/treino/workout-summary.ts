@@ -20,7 +20,7 @@ export function resumirTreinoDeHoje(state: LifeQuestState, today: string, weekda
   let volumeKg = 0;
   for (const e of feitos) {
     if (e.cat === 'Cardio' || !(e.weight > 0)) continue;
-    const m = /^(\d+)\s*x\s*(\d+)$/i.exec(e.target.trim());
+    const m = /^(\d+)\s*x\s*(\d+)(?:\s*·.*)?$/i.exec(e.target.trim());
     if (m) volumeKg += Number(m[1]) * Number(m[2]) * e.weight;
   }
 

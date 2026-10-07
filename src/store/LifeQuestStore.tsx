@@ -5,6 +5,7 @@ import { gerarCardapio } from '@/engines/dieta-engine';
 import { gerarMissao } from '@/engines/treino-engine';
 
 import { createDefaultState } from './default-state';
+import { DIAS_DO_PLANO, diaDoPlano, planoVazio } from './forja-treino';
 import { MissionDef } from './daily-missions';
 import { currentWeekday, dateKeyOffset, todayStr } from './dates';
 import {
@@ -15,6 +16,7 @@ import {
   NutritionLogEntry,
   TreinoMissaoConfig,
   TreinoMissaoDia,
+  WEEKDAYS,
 } from './types';
 
 const STORE_KEY = 'lifequest_state_v1';
@@ -79,10 +81,10 @@ type Ctx = {
   isMissionDone: (mission: MissionDef) => boolean;
   claimDailyMission: (mission: MissionDef) => void;
 
-  // Forja de Missões (treino gerado)
+  // Forja de Treino (treino gerado)
   setTreinoMissaoConfig: (patch: Partial<TreinoMissaoConfig>) => void;
-  setTreinoMissaoSemana: (dias: TreinoMissaoDia[]) => void;
   gerarMissaoDoDiaTreino: (idx: number) => void;
+  aplicarSemanaTreino: (split: { label: string; cat: string[]; tipo: string }[]) => void;
 
   // Cozinha do Alquimista (dieta gerada)
   setDietaPerfil: (patch: Partial<DietaPerfil>) => void;
@@ -597,10 +599,6 @@ export function LifeQuestProvider({ children }: { children: React.ReactNode }) {
     setState((prev) => ({ ...prev, treinoMissaoConfig: { ...prev.treinoMissaoConfig, ...patch } }));
   }, []);
 
-  const setTreinoMissaoSemana = useCallback((dias: TreinoMissaoDia[]) => {
-    setState((prev) => ({ ...prev, treinoMissaoSemana: dias }));
-  }, []);
-
   const gerarMissaoDoDiaTreino = useCallback(
     (idx: number) => {
       setState((prev) => {
@@ -611,15 +609,40 @@ export function LifeQuestProvider({ children }: { children: React.ReactNode }) {
         const next: LifeQuestState = JSON.parse(JSON.stringify(prev));
         if (resposta.ok) {
           next.treinoMissaoSemana[idx] = { ...next.treinoMissaoSemana[idx], error: null, resultado: resposta.dados };
-          gainAttrXp(next, 'forca', resposta.dados.xp);
+          if (dia.weekday) next.workoutPlan[dia.weekday] = diaDoPlano(dia.label, resposta.dados.exercicios);
         } else {
           next.treinoMissaoSemana[idx] = { ...next.treinoMissaoSemana[idx], error: resposta.erro };
         }
         return next;
       });
     },
-    [gainAttrXp]
+    []
   );
+
+  // Gera a missão de cada treino da semana e substitui o Plano semanal por ela.
+  // O XP vem de marcar os exercícios no plano (não de gerar), senão gerar a
+  // semana inteira de uma vez renderia XP de graça.
+  const aplicarSemanaTreino = useCallback((split: { label: string; cat: string[]; tipo: string }[]) => {
+    setState((prev) => {
+      const classe = prev.treinoMissaoConfig.classe;
+      if (!classe || split.length === 0) return prev;
+      const idxs = DIAS_DO_PLANO[split.length] ?? split.map((_, i) => i);
+      const semana: TreinoMissaoDia[] = [];
+      const plano = planoVazio();
+      split.forEach((d, i) => {
+        const weekday = WEEKDAYS[idxs[i]];
+        const resposta = gerarMissao({ dia: d, classeKey: classe, config: prev.treinoMissaoConfig });
+        if (resposta.ok) {
+          semana.push({ ...d, weekday, resultado: resposta.dados, error: null });
+          plano[weekday] = diaDoPlano(d.label, resposta.dados.exercicios);
+        } else {
+          semana.push({ ...d, weekday, resultado: null, error: resposta.erro });
+          plano[weekday] = { title: d.label, exercises: [] };
+        }
+      });
+      return { ...prev, treinoMissaoSemana: semana, workoutPlan: plano };
+    });
+  }, []);
 
   const setDietaPerfil = useCallback((patch: Partial<DietaPerfil>) => {
     setState((prev) => ({ ...prev, dietaPerfil: { ...prev.dietaPerfil, ...patch } }));
@@ -742,8 +765,8 @@ export function LifeQuestProvider({ children }: { children: React.ReactNode }) {
       isMissionDone,
       claimDailyMission,
       setTreinoMissaoConfig,
-      setTreinoMissaoSemana,
       gerarMissaoDoDiaTreino,
+      aplicarSemanaTreino,
       setDietaPerfil,
       setDietaConfig,
       setDietaSemana,
@@ -793,8 +816,8 @@ export function LifeQuestProvider({ children }: { children: React.ReactNode }) {
       isMissionDone,
       claimDailyMission,
       setTreinoMissaoConfig,
-      setTreinoMissaoSemana,
       gerarMissaoDoDiaTreino,
+      aplicarSemanaTreino,
       setDietaPerfil,
       setDietaConfig,
       setDietaSemana,
