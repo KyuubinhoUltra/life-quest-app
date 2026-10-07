@@ -1,7 +1,7 @@
 import React, { useEffect, useState } from 'react';
 import { Modal, Pressable, ScrollView, StyleSheet, Text, View } from 'react-native';
 
-import { BodyDiagram } from '@/components/treino/BodyDiagram';
+import { MuscleSelector } from '@/components/treino/MuscleSelector';
 import { PillButton, SubText } from '@/components/ui';
 import { LQ } from '@/constants/life-quest-theme';
 import {
@@ -13,8 +13,9 @@ import {
   NIVEIS,
 } from '@/engines/treino-engine';
 import { CLASSES as CHAR_CLASSES } from '@/store/character';
+import { MAX_DIAS_TREINO, MIN_DIAS_TREINO } from '@/store/forja-treino';
 import { useLifeQuest } from '@/store/LifeQuestStore';
-import { TreinoMissaoDia } from '@/store/types';
+import { TreinoMissaoDia, WEEKDAY_FULL, WEEKDAYS } from '@/store/types';
 
 type ClasseTreino = 'guerreiro' | 'ranger' | 'monge';
 const CLASSES_TREINO: ClasseTreino[] = ['guerreiro', 'ranger', 'monge'];
@@ -77,6 +78,7 @@ export function ForjaTreinoModal({ visible, onClose }: { visible: boolean; onClo
   const [step, setStep] = useState<Step>('classe');
   const [tempFoco, setTempFoco] = useState<string | null>(null);
   const [tempGrupos, setTempGrupos] = useState<string[]>([]);
+  const [tempDias, setTempDias] = useState<string[]>([]);
   const [splitPendente, setSplitPendente] = useState<SplitDia[]>([]);
 
   const planoTemExercicios = Object.values(state.workoutPlan).some((p) => p.exercises.length > 0);
@@ -98,6 +100,7 @@ export function ForjaTreinoModal({ visible, onClose }: { visible: boolean; onClo
     }
     setTempFoco(null);
     setTempGrupos([]);
+    setTempDias(state.treinoMissaoConfig.diasSemana ?? []);
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [visible]);
 
@@ -112,8 +115,12 @@ export function ForjaTreinoModal({ visible, onClose }: { visible: boolean; onClo
     setStep('dias');
   }
 
-  function escolherDias(dias: number) {
-    setTreinoMissaoConfig({ dias });
+  function toggleDia(dia: string) {
+    setTempDias((prev) => (prev.includes(dia) ? prev.filter((d) => d !== dia) : [...prev, dia]));
+  }
+
+  function confirmarDias() {
+    setTreinoMissaoConfig({ diasSemana: WEEKDAYS.filter((wd) => tempDias.includes(wd)) });
     setStep('equipamento');
   }
 
@@ -139,8 +146,9 @@ export function ForjaTreinoModal({ visible, onClose }: { visible: boolean; onClo
   }
 
   function finalizar(config: typeof state.treinoMissaoConfig) {
-    if (!config.classe || !config.dias) return;
-    let split = gerarSplit(config.classe, config.dias);
+    const qtdDias = config.diasSemana?.length ?? 0;
+    if (!config.classe || qtdDias < MIN_DIAS_TREINO) return;
+    let split = gerarSplit(config.classe, qtdDias);
     if (config.classe === 'guerreiro' && config.gruposExcluidos.length > 0) {
       split = montarSemanaComExclusoes(split, config.gruposExcluidos, config.foco);
     }
@@ -175,7 +183,7 @@ export function ForjaTreinoModal({ visible, onClose }: { visible: boolean; onClo
       <View style={styles.overlay}>
         <View style={styles.panel}>
           <View style={styles.header}>
-            <Text style={styles.title}>⚔️ Forja de Treino</Text>
+            <Text style={styles.title}>⚔️ Forja de Treinos</Text>
             <Pressable onPress={onClose} style={styles.closeBtn} hitSlop={8}>
               <Text style={styles.closeBtnText}>✕</Text>
             </Pressable>
@@ -200,21 +208,44 @@ export function ForjaTreinoModal({ visible, onClose }: { visible: boolean; onClo
             {step === 'foco' && (
               <View style={{ gap: 8 }}>
                 <SubText>Quer dar ênfase extra em alguma área essa semana?</SubText>
-                <BodyDiagram selecionados={tempFoco ? [tempFoco] : []} onToggle={(g) => setTempFoco((p) => (p === g ? null : g))} />
+                <MuscleSelector selecionados={tempFoco ? [tempFoco] : []} onToggle={(g) => setTempFoco((p) => (p === g ? null : g))} />
                 <PillButton label={tempFoco ? 'Confirmar ênfase' : 'Sem preferência, seguir'} onPress={confirmarFoco} />
               </View>
             )}
 
             {step === 'dias' && (
               <View style={{ gap: 8 }}>
-                <SubText>Quantos dias por semana você consegue treinar?</SubText>
+                <SubText>Em quais dias da semana você pode treinar? Os treinos se ajustam à quantidade de dias.</SubText>
                 <View style={styles.gridRow}>
-                  {[2, 3, 4, 5, 6].map((n) => (
-                    <Pressable key={n} onPress={() => escolherDias(n)} style={styles.gridBtn}>
-                      <Text style={styles.gridBtnText}>{n}</Text>
-                    </Pressable>
-                  ))}
+                  {WEEKDAYS.map((wd, i) => {
+                    const ativo = tempDias.includes(wd);
+                    return (
+                      <Pressable
+                        key={wd}
+                        onPress={() => toggleDia(wd)}
+                        accessibilityLabel={WEEKDAY_FULL[i]}
+                        style={[styles.gridBtn, ativo && styles.gridBtnActive]}>
+                        <Text style={[styles.gridBtnText, ativo && styles.gridBtnTextActive]}>{wd}</Text>
+                      </Pressable>
+                    );
+                  })}
                 </View>
+                <SubText>
+                  {tempDias.length === 0
+                    ? `Escolha de ${MIN_DIAS_TREINO} a ${MAX_DIAS_TREINO} dias.`
+                    : `${tempDias.length} ${tempDias.length === 1 ? 'dia selecionado' : 'dias selecionados'}${
+                        tempDias.length < MIN_DIAS_TREINO
+                          ? ` — escolha pelo menos ${MIN_DIAS_TREINO}.`
+                          : tempDias.length > MAX_DIAS_TREINO
+                            ? ` — o máximo é ${MAX_DIAS_TREINO}, pra sobrar um dia de descanso.`
+                            : '.'
+                      }`}
+                </SubText>
+                <PillButton
+                  label="Continuar"
+                  onPress={confirmarDias}
+                  disabled={tempDias.length < MIN_DIAS_TREINO || tempDias.length > MAX_DIAS_TREINO}
+                />
               </View>
             )}
 
@@ -245,7 +276,7 @@ export function ForjaTreinoModal({ visible, onClose }: { visible: boolean; onClo
             {step === 'grupos' && (
               <View style={{ gap: 8 }}>
                 <SubText>Tem algum grupo muscular que você não treina?</SubText>
-                <BodyDiagram selecionados={tempGrupos} onToggle={(g) => setTempGrupos((p) => (p.includes(g) ? p.filter((k) => k !== g) : [...p, g]))} />
+                <MuscleSelector selecionados={tempGrupos} onToggle={(g) => setTempGrupos((p) => (p.includes(g) ? p.filter((k) => k !== g) : [...p, g]))} />
                 <PillButton label={tempGrupos.length ? 'Confirmar exclusões' : 'Treino todos, seguir'} onPress={confirmarGrupos} />
               </View>
             )}
@@ -308,7 +339,9 @@ const styles = StyleSheet.create({
     borderColor: LQ.line,
     backgroundColor: LQ.paper,
   },
+  gridBtnActive: { backgroundColor: LQ.gold, borderColor: LQ.gold },
   gridBtnText: { color: LQ.ink, fontFamily: LQ.fontBodySemiBold, fontSize: 14 },
+  gridBtnTextActive: { color: '#fff' },
   listBtn: { borderWidth: 1, borderColor: LQ.line, backgroundColor: LQ.paper, borderRadius: LQ.radius, paddingVertical: 12, paddingHorizontal: 14 },
   listBtnText: { color: LQ.ink, fontSize: 14 },
   semanaHeader: { flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between' },

@@ -5,7 +5,7 @@ import { gerarCardapio } from '@/engines/dieta-engine';
 import { gerarMissao } from '@/engines/treino-engine';
 
 import { createDefaultState } from './default-state';
-import { DIAS_DO_PLANO, diaDoPlano, planoVazio } from './forja-treino';
+import { diaDoPlano, planoVazio } from './forja-treino';
 import { MissionDef } from './daily-missions';
 import { currentWeekday, dateKeyOffset, todayStr } from './dates';
 import {
@@ -81,7 +81,7 @@ type Ctx = {
   isMissionDone: (mission: MissionDef) => boolean;
   claimDailyMission: (mission: MissionDef) => void;
 
-  // Forja de Treino (treino gerado)
+  // Forja de Treinos (treino gerado)
   setTreinoMissaoConfig: (patch: Partial<TreinoMissaoConfig>) => void;
   gerarMissaoDoDiaTreino: (idx: number) => void;
   aplicarSemanaTreino: (split: { label: string; cat: string[]; tipo: string }[]) => void;
@@ -626,11 +626,12 @@ export function LifeQuestProvider({ children }: { children: React.ReactNode }) {
     setState((prev) => {
       const classe = prev.treinoMissaoConfig.classe;
       if (!classe || split.length === 0) return prev;
-      const idxs = DIAS_DO_PLANO[split.length] ?? split.map((_, i) => i);
+      // cada treino cai num dos dias que a pessoa marcou, na ordem da semana
+      const diasEscolhidos = WEEKDAYS.filter((wd) => prev.treinoMissaoConfig.diasSemana?.includes(wd));
       const semana: TreinoMissaoDia[] = [];
       const plano = planoVazio();
       split.forEach((d, i) => {
-        const weekday = WEEKDAYS[idxs[i]];
+        const weekday = diasEscolhidos[i] ?? WEEKDAYS[i];
         const resposta = gerarMissao({ dia: d, classeKey: classe, config: prev.treinoMissaoConfig });
         if (resposta.ok) {
           semana.push({ ...d, weekday, resultado: resposta.dados, error: null });

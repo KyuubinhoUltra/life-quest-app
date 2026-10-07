@@ -73,7 +73,7 @@ export function TreinoTab() {
 
   return (
     <ScrollView style={styles.screen} contentContainerStyle={styles.content}>
-      <PillButton label="⚔️ Forja de Treino" onPress={() => setForjaOpen(true)} style={{ width: '100%' }} />
+      <PillButton label="⚔️ Forja de Treinos" onPress={() => setForjaOpen(true)} style={{ width: '100%' }} />
 
       <SectionTitle>Plano semanal</SectionTitle>
       <View style={styles.weekdayRow}>

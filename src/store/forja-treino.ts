@@ -2,15 +2,9 @@ import { EXERCICIOS } from '@/engines/treino-engine';
 
 import { TreinoMissaoExercicio, WEEKDAYS, WorkoutDayPlan } from './types';
 
-// Em que dias da semana (índices de WEEKDAYS) cada quantidade de treinos cai.
-export const DIAS_DO_PLANO: Record<number, number[]> = {
-  1: [0],
-  2: [0, 3],
-  3: [0, 2, 4],
-  4: [0, 1, 3, 4],
-  5: [0, 1, 2, 3, 4],
-  6: [0, 1, 2, 3, 4, 5],
-};
+// O gerador monta de 2 a 6 treinos por semana.
+export const MIN_DIAS_TREINO = 2;
+export const MAX_DIAS_TREINO = 6;
 
 // categoria do engine -> nome de categoria usado no Plano semanal
 const CAT_DO_PLANO: Record<string, string> = {
