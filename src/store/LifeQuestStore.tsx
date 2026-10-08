@@ -5,6 +5,7 @@ import { gerarCardapio } from '@/engines/dieta-engine';
 import { gerarMissao } from '@/engines/treino-engine';
 
 import { Celebration, conquistasPendentes } from './achievements';
+import { RunRecord } from './corrida';
 import { levelFromXp } from './character';
 import { createDefaultState } from './default-state';
 import { diaDoPlano, planoVazio } from './forja-treino';
@@ -97,6 +98,8 @@ type Ctx = {
   registrarRefeicaoComida: (entry: Omit<NutritionLogEntry, 'registradoEm' | 'origem'>) => void;
 
   // Conquistas e nível da conta
+  salvarCorrida: (run: RunRecord) => void;
+  excluirCorrida: (id: string) => void;
   bumpCounter: (key: keyof Counters) => void;
   celebrations: Celebration[];
   dismissCelebration: () => void;
@@ -153,9 +156,10 @@ export function LifeQuestProvider({ children }: { children: React.ReactNode }) {
       const sleepDone = !!(sleepEntry && sleepEntry.bed && sleepEntry.wake);
       const workoutLogForDay = state.workoutLog[dateKey];
       const workoutDone = !!(workoutLogForDay && Object.values(workoutLogForDay).some(Boolean));
-      return habitsDone || waterDone || sleepDone || workoutDone;
+      const runDone = state.runs.some((r) => r.date === dateKey);
+      return habitsDone || waterDone || sleepDone || workoutDone || runDone;
     },
-    [state.habitHistory, state.waterLog, state.sleepLog, state.workoutLog]
+    [state.habitHistory, state.waterLog, state.sleepLog, state.workoutLog, state.runs]
   );
 
   const currentOfensiva = useCallback(() => {
@@ -570,7 +574,7 @@ export function LifeQuestProvider({ children }: { children: React.ReactNode }) {
           return diff / 60 >= SLEEP_TARGET_H;
         }
         case 'workout':
-          return (state.workoutDurations[today] || 0) > 0;
+          return (state.workoutDurations[today] || 0) > 0 || state.runs.some((r) => r.date === today);
         case 'habits':
           return state.habits.length > 0 && (state.habitHistory[today] || []).length === state.habits.length;
         case 'goalDeposit':
@@ -584,6 +588,7 @@ export function LifeQuestProvider({ children }: { children: React.ReactNode }) {
       state.waterLog,
       state.sleepLog,
       state.workoutDurations,
+      state.runs,
       state.habits,
       state.habitHistory,
       state.financeActivity,
@@ -722,6 +727,24 @@ export function LifeQuestProvider({ children }: { children: React.ReactNode }) {
     [today]
   );
 
+  // XP de corrida vai pra Vitalidade (e 30% pro nível da conta, como as outras ações)
+  const salvarCorrida = useCallback(
+    (run: RunRecord) => {
+      setState((prev) => {
+        if (prev.runs.some((r) => r.id === run.id)) return prev;
+        const next: LifeQuestState = JSON.parse(JSON.stringify(prev));
+        next.runs.unshift(run);
+        gainAttrXp(next, 'vitalidade', run.xp);
+        return next;
+      });
+    },
+    [gainAttrXp]
+  );
+
+  const excluirCorrida = useCallback((id: string) => {
+    setState((prev) => ({ ...prev, runs: prev.runs.filter((r) => r.id !== id) }));
+  }, []);
+
   const bumpCounter = useCallback((key: keyof Counters) => {
     setState((prev) => ({ ...prev, counters: { ...prev.counters, [key]: (prev.counters?.[key] ?? 0) + 1 } }));
   }, []);
@@ -769,7 +792,7 @@ export function LifeQuestProvider({ children }: { children: React.ReactNode }) {
       setState((prev) => ({ ...prev, stats: { ...prev.stats, bestStreak: cur } }));
     }
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [ready, state.habitHistory, state.waterLog, state.sleepLog, state.workoutLog]);
+  }, [ready, state.habitHistory, state.waterLog, state.sleepLog, state.workoutLog, state.runs]);
 
   const value = useMemo<Ctx>(
     () => ({
@@ -822,6 +845,8 @@ export function LifeQuestProvider({ children }: { children: React.ReactNode }) {
       setDietaSemana,
       gerarCardapioDoDia,
       registrarRefeicaoComida,
+      salvarCorrida,
+      excluirCorrida,
       bumpCounter,
       celebrations,
       dismissCelebration,
@@ -876,6 +901,8 @@ export function LifeQuestProvider({ children }: { children: React.ReactNode }) {
       setDietaSemana,
       gerarCardapioDoDia,
       registrarRefeicaoComida,
+      salvarCorrida,
+      excluirCorrida,
       bumpCounter,
       celebrations,
       dismissCelebration,

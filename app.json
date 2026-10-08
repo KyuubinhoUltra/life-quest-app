@@ -59,7 +59,16 @@
           "cameraPermission": "O Life Quest usa a câmera para você tirar fotos dos treinos e publicar na Comunidade."
         }
       ],
-      "expo-sharing"
+      "expo-sharing",
+      [
+        "expo-location",
+        {
+          "locationAlwaysAndWhenInUsePermission": "O Life Quest usa sua localização para gravar o percurso das suas corridas, mesmo com a tela apagada.",
+          "locationWhenInUsePermission": "O Life Quest usa sua localização para gravar o percurso das suas corridas.",
+          "isAndroidBackgroundLocationEnabled": true,
+          "isAndroidForegroundServiceEnabled": true
+        }
+      ]
     ],
     "experiments": {
       "typedRoutes": true,

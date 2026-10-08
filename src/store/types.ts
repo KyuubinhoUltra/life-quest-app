@@ -1,3 +1,5 @@
+import { RunRecord } from './corrida';
+
 export type Habit = { id: string; name: string };
 
 export type WorkoutExercise = { id: string; name: string; target: string; weight: number; cat?: string };
@@ -154,6 +156,7 @@ export type LifeQuestState = {
   nutritionLog: Record<string, NutritionLogEntry[]>;
   counters: Counters;
   achievements: AchievementsState;
+  runs: RunRecord[];
 };
 
 export const WEEKDAYS = ['Seg', 'Ter', 'Qua', 'Qui', 'Sex', 'Sáb', 'Dom'] as const;

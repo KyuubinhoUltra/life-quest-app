@@ -3,12 +3,14 @@ import { Pressable, ScrollView, StyleSheet, Text, TextInput, View } from 'react-
 import Svg, { Path } from 'react-native-svg';
 
 import { ExercisePickerModal } from '@/components/ExercisePickerModal';
+import { CorridaModal } from '@/components/corrida/CorridaModal';
 import { ForjaTreinoModal } from '@/components/treino/ForjaTreinoModal';
 import { ShareWorkoutModal } from '@/components/treino/ShareWorkoutModal';
 import { BigFigure, Card, Eyebrow, PillButton, SectionTitle, SubText, XpBadge } from '@/components/ui';
 import { WeightChart } from '@/components/WeightChart';
 import { LQ } from '@/constants/life-quest-theme';
 import { fmtDuration } from '@/store/dates';
+import { ActiveRun, getActiveRun, subscribe as subscribeCorrida } from '@/services/runTracker';
 import { XP_EXERCISE, useLifeQuest } from '@/store/LifeQuestStore';
 import { LibraryExercise } from '@/store/exercise-library';
 import { WEEKDAY_FULL, WEEKDAYS } from '@/store/types';
@@ -43,6 +45,8 @@ export function TreinoTab() {
   const [pickerOpen, setPickerOpen] = useState(false);
   const [forjaOpen, setForjaOpen] = useState(false);
   const [shareOpen, setShareOpen] = useState(false);
+  const [corridaOpen, setCorridaOpen] = useState(false);
+  const [corridaAtiva, setCorridaAtiva] = useState<ActiveRun | null>(null);
   const [weightInput, setWeightInput] = useState('');
   const [, forceTick] = useState(0);
 
@@ -53,6 +57,16 @@ export function TreinoTab() {
   const timer = state.workoutTimer;
   const running = timer.date === today && !!timer.runningSince;
   const paused = timer.date === today && !running && timer.accumulatedSeconds > 0;
+
+  useEffect(() => {
+    let ativo = true;
+    getActiveRun().then((r) => ativo && setCorridaAtiva(r));
+    const parar = subscribeCorrida((r) => setCorridaAtiva(r));
+    return () => {
+      ativo = false;
+      parar();
+    };
+  }, []);
 
   useEffect(() => {
     if (!running) return;
@@ -74,6 +88,12 @@ export function TreinoTab() {
   return (
     <ScrollView style={styles.screen} contentContainerStyle={styles.content}>
       <PillButton label="⚔️ Forja de Treinos" onPress={() => setForjaOpen(true)} style={{ width: '100%' }} />
+      <PillButton
+        label={corridaAtiva ? '🔴 Corrida em andamento' : '🏃 Corrida (GPS)'}
+        variant="ghost"
+        onPress={() => setCorridaOpen(true)}
+        style={{ width: '100%' }}
+      />
 
       <SectionTitle>Plano semanal</SectionTitle>
       <View style={styles.weekdayRow}>
@@ -216,6 +236,7 @@ export function TreinoTab() {
       />
       <ForjaTreinoModal visible={forjaOpen} onClose={() => setForjaOpen(false)} />
       <ShareWorkoutModal visible={shareOpen} onClose={() => setShareOpen(false)} />
+      <CorridaModal visible={corridaOpen} onClose={() => setCorridaOpen(false)} />
     </ScrollView>
   );
 }

@@ -1,86 +1,24 @@
-import * as Sharing from 'expo-sharing';
-import React, { useEffect, useMemo, useRef, useState } from 'react';
-import { Alert, Modal, Pressable, ScrollView, StyleSheet, Text, TextInput, View, useWindowDimensions } from 'react-native';
-import { captureRef } from 'react-native-view-shot';
+import React, { useMemo, useRef } from 'react';
+import { Modal, Pressable, ScrollView, StyleSheet, Text, View, useWindowDimensions } from 'react-native';
 
-import { AuthModal } from '@/components/AuthModal';
+import { ShareActions } from '@/components/ShareActions';
 import { WorkoutShareCard } from '@/components/treino/WorkoutShareCard';
 import { resumirTreinoDeHoje } from '@/components/treino/workout-summary';
-import { PillButton, SubText } from '@/components/ui';
+import { SubText } from '@/components/ui';
 import { LQ } from '@/constants/life-quest-theme';
 import { SexoBoneco } from '@/mapa-muscular/bodyMap';
-import { createPost } from '@/services/community';
-import { useCommunityAuth } from '@/store/CommunityAuthContext';
 import { useLifeQuest } from '@/store/LifeQuestStore';
 
 export function ShareWorkoutModal({ visible, onClose }: { visible: boolean; onClose: () => void }) {
-  const { state, today, currentWeekdayKey, setBonecoSexo, bumpCounter } = useLifeQuest();
-  const { session } = useCommunityAuth();
+  const { state, today, currentWeekdayKey, setBonecoSexo } = useLifeQuest();
   const { width } = useWindowDimensions();
   const cardRef = useRef<View>(null);
 
   const resumo = useMemo(() => resumirTreinoDeHoje(state, today, currentWeekdayKey), [state, today, currentWeekdayKey]);
   const sexo: SexoBoneco = state.profile.bonecoSexo ?? (state.dietaPerfil.sexo === 'feminino' ? 'mulher' : 'homem');
-  const largura = Math.min(340, width - 40 - 32 - 2);
+  const largura = Math.min(340, Math.max(220, width - 40 - 32 - 2));
   const data = new Date(today + 'T00:00:00').toLocaleDateString('pt-BR');
-
-  const [caption, setCaption] = useState('');
-  const [busy, setBusy] = useState<'post' | 'share' | null>(null);
-  const [authOpen, setAuthOpen] = useState(false);
-
-  useEffect(() => {
-    if (visible) setCaption(`${resumo.titulo} · ${resumo.exercicios} exercício${resumo.exercicios === 1 ? '' : 's'} 💪`);
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [visible]);
-
   const vazio = resumo.exercicios === 0;
-
-  async function capturar(): Promise<string | null> {
-    try {
-      return await captureRef(cardRef, { format: 'png', quality: 1, result: 'tmpfile' });
-    } catch (err: any) {
-      Alert.alert('Não foi possível gerar a imagem', err?.message ?? 'Tente novamente.');
-      return null;
-    }
-  }
-
-  async function postar() {
-    if (!session) {
-      setAuthOpen(true);
-      return;
-    }
-    setBusy('post');
-    try {
-      const uri = await capturar();
-      if (!uri) return;
-      await createPost(session.user.id, uri, caption);
-      bumpCounter('posts');
-      Alert.alert('Treino postado!', 'Seu resultado já está no feed da Comunidade.');
-      onClose();
-    } catch (err: any) {
-      Alert.alert('Erro ao postar', err?.message ?? 'Tente novamente.');
-    } finally {
-      setBusy(null);
-    }
-  }
-
-  async function compartilhar() {
-    setBusy('share');
-    try {
-      if (!(await Sharing.isAvailableAsync())) {
-        Alert.alert('Compartilhamento indisponível', 'Este aparelho não oferece o menu de compartilhar.');
-        return;
-      }
-      const uri = await capturar();
-      if (!uri) return;
-      await Sharing.shareAsync(uri, { mimeType: 'image/png', dialogTitle: 'Compartilhar treino' });
-      bumpCounter('shares');
-    } catch (err: any) {
-      Alert.alert('Erro ao compartilhar', err?.message ?? 'Tente novamente.');
-    } finally {
-      setBusy(null);
-    }
-  }
 
   return (
     <Modal visible={visible} animationType="slide" transparent onRequestClose={onClose}>
@@ -112,29 +50,18 @@ export function ShareWorkoutModal({ visible, onClose }: { visible: boolean; onCl
                   ))}
                 </View>
 
-                <TextInput
-                  value={caption}
-                  onChangeText={setCaption}
-                  placeholder="Legenda do post (opcional)"
-                  placeholderTextColor={LQ.inkFaint}
-                  style={styles.input}
+                <ShareActions
+                  cardRef={cardRef}
+                  defaultCaption={`${resumo.titulo} · ${resumo.exercicios} exercício${resumo.exercicios === 1 ? '' : 's'} 💪`}
+                  postedTitle="Treino postado!"
+                  dialogTitle="Compartilhar treino"
+                  onPosted={onClose}
                 />
-
-                <View style={{ width: '100%', gap: 8 }}>
-                  <PillButton label={busy === 'post' ? 'Postando…' : 'Postar na Comunidade'} onPress={postar} disabled={!!busy} />
-                  <PillButton
-                    label={busy === 'share' ? 'Abrindo…' : 'Compartilhar em outras redes'}
-                    variant="ghost"
-                    onPress={compartilhar}
-                    disabled={!!busy}
-                  />
-                </View>
               </>
             )}
           </ScrollView>
         </View>
       </View>
-      <AuthModal visible={authOpen} onClose={() => setAuthOpen(false)} />
     </Modal>
   );
 }
@@ -151,14 +78,4 @@ const styles = StyleSheet.create({
   sexoBtnActive: { backgroundColor: LQ.gold, borderColor: LQ.gold },
   sexoTxt: { color: LQ.inkSoft, fontSize: 12, fontFamily: LQ.fontBodySemiBold },
   sexoTxtActive: { color: '#fff' },
-  input: {
-    width: '100%',
-    backgroundColor: LQ.paper,
-    borderWidth: 1,
-    borderColor: LQ.line,
-    borderRadius: LQ.radius,
-    color: LQ.ink,
-    paddingVertical: 10,
-    paddingHorizontal: 14,
-  },
 });

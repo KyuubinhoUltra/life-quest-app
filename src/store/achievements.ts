@@ -18,6 +18,9 @@ export type Stats = {
   exerciciosFeitos: number;
   minutosTreino: number;
   forjaGerada: number;
+  corridas: number;
+  kmTotais: number;
+  maiorCorridaKm: number;
   habitosFeitos: number;
   ofensivaRecorde: number;
   missoesResgatadas: number;
@@ -48,6 +51,9 @@ export function estatisticas(s: LifeQuestState): Stats {
     exerciciosFeitos: sum(logsDeTreino.map(([, log]) => Object.values(log).filter(Boolean).length)),
     minutosTreino: Math.floor(sum(Object.values(s.workoutDurations)) / 60),
     forjaGerada: s.treinoMissaoSemana.some((d) => d.resultado) ? 1 : 0,
+    corridas: s.runs.length,
+    kmTotais: Math.floor(sum(s.runs.map((r) => r.distanceM)) / 1000),
+    maiorCorridaKm: Math.floor(Math.max(0, ...s.runs.map((r) => r.distanceM)) / 1000),
     habitosFeitos: sum(Object.values(s.habitHistory).map((l) => l.length)),
     ofensivaRecorde: s.stats.bestStreak || 0,
     missoesResgatadas: sum(Object.values(s.dailyMissionsClaimed).map((l) => l.length)),
@@ -88,6 +94,12 @@ export const ACHIEVEMENTS: AchievementDef[] = [
   { id: 'centuriao', icon: '💯', nome: 'Centurião', descricao: 'Conclua 100 exercícios', area: 'treino', xp: 120, attr: 'forca', stat: 'exerciciosFeitos', meta: 100 },
   { id: 'maratonista', icon: '⏱️', nome: 'Maratonista', descricao: 'Acumule 10 horas de treino cronometrado', area: 'treino', xp: 150, attr: 'forca', stat: 'minutosTreino', meta: 600 },
   { id: 'forjador', icon: '⚒️', nome: 'Forjador', descricao: 'Gere uma semana na Forja de Treinos', area: 'treino', xp: 40, attr: 'forca', stat: 'forjaGerada', meta: 1 },
+
+  { id: 'primeira-corrida', icon: '🏃', nome: 'Primeira corrida', descricao: 'Grave uma corrida com GPS', area: 'treino', xp: 40, attr: 'vitalidade', stat: 'corridas', meta: 1 },
+  { id: 'cinco-km', icon: '🥉', nome: '5K', descricao: 'Corra 5 km de uma vez', area: 'treino', xp: 100, attr: 'vitalidade', stat: 'maiorCorridaKm', meta: 5 },
+  { id: 'dez-km', icon: '🥈', nome: '10K', descricao: 'Corra 10 km de uma vez', area: 'treino', xp: 250, attr: 'vitalidade', stat: 'maiorCorridaKm', meta: 10 },
+  { id: 'corredor', icon: '👟', nome: 'Corredor', descricao: 'Grave 10 corridas', area: 'treino', xp: 120, attr: 'vitalidade', stat: 'corridas', meta: 10 },
+  { id: 'cem-km', icon: '🌍', nome: 'Volta ao bairro', descricao: 'Acumule 100 km correndo', area: 'treino', xp: 300, attr: 'vitalidade', stat: 'kmTotais', meta: 100 },
 
   // Hábitos e ofensiva
   { id: 'primeiro-passo', icon: '✅', nome: 'Primeiro passo', descricao: 'Conclua um hábito', area: 'habitos', xp: 20, attr: 'foco', stat: 'habitosFeitos', meta: 1 },
