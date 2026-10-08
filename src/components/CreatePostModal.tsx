@@ -6,6 +6,7 @@ import { PillButton } from '@/components/ui';
 import { LQ } from '@/constants/life-quest-theme';
 import { createPost } from '@/services/community';
 import { useCommunityAuth } from '@/store/CommunityAuthContext';
+import { useLifeQuest } from '@/store/LifeQuestStore';
 
 export function CreatePostModal({
   visible,
@@ -19,6 +20,7 @@ export function CreatePostModal({
   clubId?: string;
 }) {
   const { session } = useCommunityAuth();
+  const { bumpCounter } = useLifeQuest();
   const [photoUri, setPhotoUri] = useState<string | null>(null);
   const [caption, setCaption] = useState('');
   const [submitting, setSubmitting] = useState(false);
@@ -54,6 +56,7 @@ export function CreatePostModal({
     setSubmitting(true);
     try {
       await createPost(session.user.id, photoUri, caption, clubId);
+      bumpCounter('posts');
       onCreated();
       close();
     } catch (err: any) {

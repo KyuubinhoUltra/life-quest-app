@@ -4,11 +4,14 @@ import React, { createContext, useCallback, useContext, useEffect, useMemo, useR
 import { gerarCardapio } from '@/engines/dieta-engine';
 import { gerarMissao } from '@/engines/treino-engine';
 
+import { Celebration, conquistasPendentes } from './achievements';
+import { levelFromXp } from './character';
 import { createDefaultState } from './default-state';
 import { diaDoPlano, planoVazio } from './forja-treino';
 import { MissionDef } from './daily-missions';
 import { currentWeekday, dateKeyOffset, todayStr } from './dates';
 import {
+  Counters,
   DietaConfig,
   DietaDia,
   DietaPerfil,
@@ -92,6 +95,11 @@ type Ctx = {
   setDietaSemana: (dias: DietaDia[]) => void;
   gerarCardapioDoDia: (idx: number) => void;
   registrarRefeicaoComida: (entry: Omit<NutritionLogEntry, 'registradoEm' | 'origem'>) => void;
+
+  // Conquistas e nível da conta
+  bumpCounter: (key: keyof Counters) => void;
+  celebrations: Celebration[];
+  dismissCelebration: () => void;
 };
 
 const LifeQuestContext = createContext<Ctx | null>(null);
@@ -99,6 +107,7 @@ const LifeQuestContext = createContext<Ctx | null>(null);
 export function LifeQuestProvider({ children }: { children: React.ReactNode }) {
   const [state, setState] = useState<LifeQuestState>(createDefaultState);
   const [ready, setReady] = useState(false);
+  const [celebrations, setCelebrations] = useState<Celebration[]>([]);
   const today = todayStr();
   const weekday = currentWeekday();
   const loaded = useRef(false);
@@ -514,6 +523,7 @@ export function LifeQuestProvider({ children }: { children: React.ReactNode }) {
   const resetAllData = useCallback(async () => {
     await AsyncStorage.removeItem(STORE_KEY);
     setState(createDefaultState());
+    setCelebrations([]);
   }, []);
 
   const longestHabitStreak = useCallback(() => {
@@ -712,6 +722,45 @@ export function LifeQuestProvider({ children }: { children: React.ReactNode }) {
     [today]
   );
 
+  const bumpCounter = useCallback((key: keyof Counters) => {
+    setState((prev) => ({ ...prev, counters: { ...prev.counters, [key]: (prev.counters?.[key] ?? 0) + 1 } }));
+  }, []);
+
+  const dismissCelebration = useCallback(() => setCelebrations((q) => q.slice(1)), []);
+
+  // Desbloqueia conquistas assim que o estado cumpre os requisitos. O XP de bônus
+  // entra inteiro no nível da conta (e no atributo da área, quando há um).
+  useEffect(() => {
+    if (!ready) return;
+    const novas = conquistasPendentes(state);
+    if (novas.length === 0) return;
+    setState((prev) => {
+      const pendentes = conquistasPendentes(prev);
+      if (pendentes.length === 0) return prev;
+      const next: LifeQuestState = JSON.parse(JSON.stringify(prev));
+      for (const a of pendentes) {
+        next.achievements.unlocked[a.id] = today;
+        if (a.attr) next.character.xp[a.attr] += a.xp;
+        next.character.xpGeral += a.xp;
+      }
+      return next;
+    });
+    setCelebrations((q) => [
+      ...q,
+      { kind: 'achievements', ids: novas.map((a) => a.id), xp: novas.reduce((t, a) => t + a.xp, 0) },
+    ]);
+  }, [ready, state, today]);
+
+  // Comemora subir de nível (a primeira leitura só grava o nível atual, sem festa).
+  useEffect(() => {
+    if (!ready) return;
+    const nivel = levelFromXp(state.character.xpGeral).level;
+    const maior = state.character.highestLevel;
+    if (maior !== undefined && nivel <= maior) return;
+    setState((prev) => ({ ...prev, character: { ...prev.character, highestLevel: nivel } }));
+    if (maior !== undefined) setCelebrations((q) => [...q, { kind: 'level', level: nivel }]);
+  }, [ready, state.character.xpGeral, state.character.highestLevel]);
+
   // atualiza o recorde de ofensiva sempre que o estado relevante muda
   useEffect(() => {
     if (!ready) return;
@@ -773,6 +822,9 @@ export function LifeQuestProvider({ children }: { children: React.ReactNode }) {
       setDietaSemana,
       gerarCardapioDoDia,
       registrarRefeicaoComida,
+      bumpCounter,
+      celebrations,
+      dismissCelebration,
     }),
     [
       state,
@@ -824,6 +876,9 @@ export function LifeQuestProvider({ children }: { children: React.ReactNode }) {
       setDietaSemana,
       gerarCardapioDoDia,
       registrarRefeicaoComida,
+      bumpCounter,
+      celebrations,
+      dismissCelebration,
     ]
   );
 

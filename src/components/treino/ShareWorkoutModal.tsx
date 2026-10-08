@@ -14,7 +14,7 @@ import { useCommunityAuth } from '@/store/CommunityAuthContext';
 import { useLifeQuest } from '@/store/LifeQuestStore';
 
 export function ShareWorkoutModal({ visible, onClose }: { visible: boolean; onClose: () => void }) {
-  const { state, today, currentWeekdayKey, setBonecoSexo } = useLifeQuest();
+  const { state, today, currentWeekdayKey, setBonecoSexo, bumpCounter } = useLifeQuest();
   const { session } = useCommunityAuth();
   const { width } = useWindowDimensions();
   const cardRef = useRef<View>(null);
@@ -54,6 +54,7 @@ export function ShareWorkoutModal({ visible, onClose }: { visible: boolean; onCl
       const uri = await capturar();
       if (!uri) return;
       await createPost(session.user.id, uri, caption);
+      bumpCounter('posts');
       Alert.alert('Treino postado!', 'Seu resultado já está no feed da Comunidade.');
       onClose();
     } catch (err: any) {
@@ -73,6 +74,7 @@ export function ShareWorkoutModal({ visible, onClose }: { visible: boolean; onCl
       const uri = await capturar();
       if (!uri) return;
       await Sharing.shareAsync(uri, { mimeType: 'image/png', dialogTitle: 'Compartilhar treino' });
+      bumpCounter('shares');
     } catch (err: any) {
       Alert.alert('Erro ao compartilhar', err?.message ?? 'Tente novamente.');
     } finally {

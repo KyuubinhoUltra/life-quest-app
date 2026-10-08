@@ -93,5 +93,7 @@ export function createDefaultState(): LifeQuestState {
     dietaSemana: [],
     dietaUsadasNaSemana: [],
     nutritionLog: {},
+    counters: { posts: 0, shares: 0, follows: 0, clubs: 0 },
+    achievements: { unlocked: {} },
   };
 }

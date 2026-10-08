@@ -19,6 +19,7 @@ import { Text } from 'react-native';
 import { StatusBar } from 'expo-status-bar';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 
+import { CelebrationHost } from '@/components/CelebrationHost';
 import { ChecklistIcon, HomeIcon, PulseIcon, ShieldIcon } from '@/components/TabIcon';
 import { LQ } from '@/constants/life-quest-theme';
 import { CommunityAuthProvider } from '@/store/CommunityAuthContext';
@@ -55,6 +56,7 @@ export default function RootLayout() {
     <LifeQuestProvider>
       <CommunityAuthProvider>
         <StatusBar style="light" />
+        <CelebrationHost />
         <Tabs
           screenOptions={{
             headerStyle: { backgroundColor: LQ.paper },

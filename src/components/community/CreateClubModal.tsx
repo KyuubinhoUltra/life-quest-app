@@ -5,6 +5,7 @@ import { PillButton } from '@/components/ui';
 import { LQ } from '@/constants/life-quest-theme';
 import { createClub } from '@/services/community';
 import { useCommunityAuth } from '@/store/CommunityAuthContext';
+import { useLifeQuest } from '@/store/LifeQuestStore';
 
 const CLUB_ICONS = ['🏆', '🏋️', '🏃', '🚴', '🧘', '⚽', '🥊', '🏊'];
 
@@ -18,6 +19,7 @@ export function CreateClubModal({
   onCreated: () => void;
 }) {
   const { session } = useCommunityAuth();
+  const { bumpCounter } = useLifeQuest();
   const [name, setName] = useState('');
   const [description, setDescription] = useState('');
   const [icon, setIcon] = useState(CLUB_ICONS[0]);
@@ -39,6 +41,7 @@ export function CreateClubModal({
     setSubmitting(true);
     try {
       await createClub(session.user.id, name, icon, description);
+      bumpCounter('clubs');
       onCreated();
       close();
     } catch (err: any) {

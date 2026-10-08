@@ -26,6 +26,8 @@ import {
   unfollowUser,
 } from '@/services/community';
 import { useCommunityAuth } from '@/store/CommunityAuthContext';
+import { useLifeQuest } from '@/store/LifeQuestStore';
+import { LevelStrip } from '@/components/LevelStrip';
 
 type TabKey = 'feed' | 'clubes' | 'seguindo' | 'amigos';
 const TABS: { key: TabKey; label: string }[] = [
@@ -38,6 +40,7 @@ const TABS: { key: TabKey; label: string }[] = [
 export default function ComunidadeScreen() {
   const router = useRouter();
   const { session } = useCommunityAuth();
+  const { bumpCounter } = useLifeQuest();
   const userId = session?.user.id;
   const goToProfile = (id: string) => router.push({ pathname: '/perfil/[id]', params: { id } });
 
@@ -167,7 +170,10 @@ export default function ComunidadeScreen() {
     });
     try {
       if (already) await unfollowUser(userId, post.user_id);
-      else await followUser(userId, post.user_id);
+      else {
+        await followUser(userId, post.user_id);
+        bumpCounter('follows');
+      }
     } catch {
       loadFollowingIds();
     }
@@ -191,6 +197,10 @@ export default function ComunidadeScreen() {
 
   return (
     <View style={styles.screen}>
+      <View style={{ paddingHorizontal: 16, paddingTop: 12 }}>
+        <LevelStrip onPress={() => router.push('/personagem')} />
+      </View>
+
       <View style={styles.tabBar}>
         {TABS.map((t) => (
           <Pressable key={t.key} onPress={() => setTab(t.key)} style={[styles.tabBtn, tab === t.key && styles.tabBtnActive]}>

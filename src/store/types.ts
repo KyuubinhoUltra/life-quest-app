@@ -28,6 +28,12 @@ export type BodyWeightEntry = { id: string; date: string; weight: number };
 
 export type CharacterClass = 'guerreiro' | 'ranger' | 'monge' | 'alquimista';
 
+// Ações da Comunidade/compartilhamento acontecem fora do estado local (Supabase,
+// menu nativo), então contamos aqui pra alimentar as conquistas.
+export type Counters = { posts: number; shares: number; follows: number; clubs: number };
+// id da conquista -> data (YYYY-MM-DD) em que foi desbloqueada
+export type AchievementsState = { unlocked: Record<string, string> };
+
 // ---- Forja de Treinos (treino gerado) ----
 export type TreinoMissaoExercicio = { nome: string; series: number; repeticoes: string; descanso: string };
 export type TreinoMissaoResultado = {
@@ -133,6 +139,8 @@ export type LifeQuestState = {
     xp: { forca: number; vitalidade: number; riqueza: number; foco: number };
     goalsCompleted: Record<string, boolean>;
     dayFlags: Record<string, { water?: boolean; sleep?: boolean; diaPerfeito?: boolean }>;
+    /** maior nível da conta já comemorado (evita repetir a festa ao perder e recuperar XP) */
+    highestLevel?: number;
   };
   workoutTimer: { date: string | null; accumulatedSeconds: number; runningSince: number | null };
   workoutDurations: Record<string, number>;
@@ -144,6 +152,8 @@ export type LifeQuestState = {
   dietaSemana: DietaDia[];
   dietaUsadasNaSemana: string[];
   nutritionLog: Record<string, NutritionLogEntry[]>;
+  counters: Counters;
+  achievements: AchievementsState;
 };
 
 export const WEEKDAYS = ['Seg', 'Ter', 'Qua', 'Qui', 'Sex', 'Sáb', 'Dom'] as const;

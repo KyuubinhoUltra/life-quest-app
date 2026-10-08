@@ -16,6 +16,7 @@ import {
   toggleLike,
 } from '@/services/community';
 import { useCommunityAuth } from '@/store/CommunityAuthContext';
+import { useLifeQuest } from '@/store/LifeQuestStore';
 import { PostFeedList } from './PostFeedList';
 
 export function ClubDetailModal({
@@ -31,6 +32,7 @@ export function ClubDetailModal({
 }) {
   const router = useRouter();
   const { session } = useCommunityAuth();
+  const { bumpCounter } = useLifeQuest();
   const [posts, setPosts] = useState<CommunityPost[]>([]);
   const [memberCount, setMemberCount] = useState(0);
   const [refreshing, setRefreshing] = useState(false);
@@ -91,6 +93,7 @@ export function ClubDetailModal({
         await leaveClub(club.id, session.user.id);
       } else {
         await joinClub(club.id, session.user.id);
+        bumpCounter('clubs');
       }
       onMembershipChanged();
       await load();

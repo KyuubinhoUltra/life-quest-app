@@ -7,7 +7,9 @@ import { ClubDetailModal } from '@/components/community/ClubDetailModal';
 import { LoginPrompt } from '@/components/community/LoginPrompt';
 import { PostFeedList } from '@/components/community/PostFeedList';
 import { EditProfileModal } from '@/components/profile/EditProfileModal';
+import { ConquistasTab } from '@/components/profile/ConquistasTab';
 import { ProgressoTab } from '@/components/profile/ProgressoTab';
+import { LevelStrip } from '@/components/LevelStrip';
 import { ChevronLeftIcon } from '@/components/TabIcon';
 import { Card, PillButton, SubText } from '@/components/ui';
 import { LQ } from '@/constants/life-quest-theme';
@@ -26,11 +28,13 @@ import {
   unfollowUser,
 } from '@/services/community';
 import { useCommunityAuth } from '@/store/CommunityAuthContext';
+import { useLifeQuest } from '@/store/LifeQuestStore';
 
-type TabKey = 'todos' | 'progresso' | 'clubes';
+type TabKey = 'todos' | 'progresso' | 'conquistas' | 'clubes';
 const TABS: { key: TabKey; label: string }[] = [
   { key: 'todos', label: 'Todos' },
   { key: 'progresso', label: 'Progresso' },
+  { key: 'conquistas', label: 'Conquistas' },
   { key: 'clubes', label: 'Clubes' },
 ];
 
@@ -48,6 +52,7 @@ function streakFromPosts(posts: CommunityPost[]): number {
 export function ProfileScreen({ userId, isOwnProfile }: { userId?: string; isOwnProfile: boolean }) {
   const router = useRouter();
   const { session } = useCommunityAuth();
+  const { bumpCounter } = useLifeQuest();
   const viewerId = session?.user.id;
 
   const [tab, setTab] = useState<TabKey>('todos');
@@ -130,7 +135,10 @@ export function ProfileScreen({ userId, isOwnProfile }: { userId?: string; isOwn
     setFollowerCount((c) => c + (isFollowing ? -1 : 1));
     try {
       if (isFollowing) await unfollowUser(viewerId, userId);
-      else await followUser(viewerId, userId);
+      else {
+        await followUser(viewerId, userId);
+        bumpCounter('follows');
+      }
     } catch {
       load();
     }
@@ -175,6 +183,11 @@ export function ProfileScreen({ userId, isOwnProfile }: { userId?: string; isOwn
       </View>
 
       {isOwnProfile && <Text style={styles.ownName}>{displayName}</Text>}
+      {isOwnProfile && (
+        <View style={{ paddingHorizontal: 16, marginBottom: 10 }}>
+          <LevelStrip detalhado />
+        </View>
+      )}
 
       <View style={styles.actionsRow}>
         {isOwnProfile ? (
@@ -228,6 +241,19 @@ export function ProfileScreen({ userId, isOwnProfile }: { userId?: string; isOwn
               <Card>
                 <SubText style={{ textAlign: 'center' }}>
                   O progresso de personagem ainda é local a cada aparelho — só é possível ver o seu próprio.
+                </SubText>
+              </Card>
+            </View>
+          ))}
+
+        {tab === 'conquistas' &&
+          (isOwnProfile ? (
+            <ConquistasTab />
+          ) : (
+            <View style={{ padding: 16 }}>
+              <Card>
+                <SubText style={{ textAlign: 'center' }}>
+                  As conquistas ficam salvas no aparelho de cada pessoa — só é possível ver as suas.
                 </SubText>
               </Card>
             </View>
